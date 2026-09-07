@@ -6,6 +6,17 @@
   <title>XCPC 每日一题</title>
   <style>
     :root {
+      --bg: #f3f1e9;
+      --card: #fdfcf6;
+      --border: #ddd8c8;
+      --text: #3c3a32;
+      --muted: #7a766a;
+      --accent: #2f7f5f;
+      --tag-bg: #e6efe9;
+      --tag-text: #2f7f5f;
+      --gold: #b98a2f;
+    }
+    body.dark {
       --bg: #0f1115;
       --card: #171a21;
       --border: #262b36;
@@ -18,6 +29,9 @@
     }
     * { box-sizing: border-box; }
     body {
+      transition: background .25s ease, color .25s ease;
+    }
+    body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
         "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
@@ -29,12 +43,27 @@
     header { text-align: center; margin-bottom: 28px; }
     header h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: 1px; }
     header p { margin: 0; color: var(--muted); font-size: 14px; }
+    #theme-toggle {
+      margin-top: 14px;
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background .25s ease, color .25s ease, border-color .25s ease;
+    }
+    #theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
     .latest {
-      background: linear-gradient(135deg, #1a2030, #171a21);
+      background: linear-gradient(135deg, #eef5ec, #e9efe9);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 20px 22px;
       margin-bottom: 24px;
+    }
+    body.dark .latest {
+      background: linear-gradient(135deg, #1a2030, #171a21);
     }
     .latest .label {
       color: var(--gold);
@@ -63,7 +92,8 @@
     table { width: 100%; border-collapse: collapse; background: var(--card);
       border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
     th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); }
-    th { background: #1b1f28; font-size: 13px; color: var(--muted); font-weight: 600; }
+    th { background: var(--bg); font-size: 13px; color: var(--muted); font-weight: 600; }
+    body.dark th { background: #1b1f28; }
     td { font-size: 14px; vertical-align: top; }
     tr:last-child td { border-bottom: none; }
     .pro { font-weight: 600; }
@@ -94,6 +124,7 @@
     <header>
       <h1>XCPC 每日一题</h1>
       <p>ICPC / CCPC 真题 · 每天一道 · 只记录「来源 · 题目 · 链接」</p>
+      <button id="theme-toggle" type="button" aria-label="切换护眼/暗色主题">🌙 切换到暗色</button>
     </header>
 
     <section id="latest" class="latest" hidden>
@@ -122,6 +153,25 @@
 
   <script>
     const $ = (id) => document.getElementById(id);
+
+    // 主题切换：默认护眼（浅）色，选择记忆在 localStorage
+    const THEME_KEY = "xcpc-theme";
+    const toggleBtn = $("theme-toggle");
+
+    function applyTheme(dark) {
+      document.body.classList.toggle("dark", dark);
+      toggleBtn.textContent = dark ? "🌞 切换到护眼" : "🌙 切换到暗色";
+    }
+
+    const saved = localStorage.getItem(THEME_KEY);
+    let dark = saved === null ? false : saved === "dark";
+    applyTheme(dark);
+
+    toggleBtn.addEventListener("click", () => {
+      dark = !dark;
+      applyTheme(dark);
+      localStorage.setItem(THEME_KEY, dark ? "dark" : "light");
+    });
 
     function esc(s) {
       return String(s ?? "").replace(/[&<>"']/g, (c) => ({
