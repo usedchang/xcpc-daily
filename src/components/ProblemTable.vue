@@ -1,27 +1,16 @@
 <script setup>
-import { ref } from "vue";
 import { esc } from "../utils.js";
 import { hasEditorial } from "../data/solutions.js";
-import SolutionPanel from "./SolutionPanel.vue";
+import { useSolutionModal } from "../composables/useSolutionModal.js";
 
 defineProps({
   problems: { type: Array, default: () => [] },
 });
 
-// 展开状态：只存展开行的 key（不用 Set，直接 ref 一个新对象触发依赖）
-const expanded = ref({});
+const { show } = useSolutionModal();
 
 function rowKey(p) {
   return `${p.date}'|'${p.title}`;
-}
-
-function toggleSolution(p) {
-  const key = rowKey(p);
-  expanded.value = { ...expanded.value, [key]: !expanded.value[key] };
-}
-
-function isExpanded(p) {
-  return !!expanded.value[rowKey(p)];
 }
 
 function has(p) {
@@ -51,32 +40,25 @@ function badges(p) {
         <tr v-if="problems.length === 0">
           <td colspan="4" class="muted">没有匹配的题目。</td>
         </tr>
-        <template v-for="p in problems" :key="rowKey(p)">
-          <tr>
-            <td class="muted">{{ p.date }}</td>
-            <td>{{ p.source }}</td>
-            <td class="pro">
-              <a :href="p.link" target="_blank" rel="noopener">{{ p.title }}</a>
-              <span v-if="p.difficulty || (p.tags && p.tags.length)" class="badges" v-html="badges(p)"></span>
-            </td>
-            <td>
-              <a :href="p.link" target="_blank" rel="noopener">{{ p.link }}</a>
-              <button
-                v-if="has(p)"
-                type="button"
-                class="solution-toggle"
-                @click="toggleSolution(p)"
-              >
-                {{ isExpanded(p) ? "收起 ▴" : "题解 ▾" }}
-              </button>
-            </td>
-          </tr>
-          <tr v-if="isExpanded(p)">
-            <td colspan="4" class="solution-cell">
-              <SolutionPanel :problem="p" />
-            </td>
-          </tr>
-        </template>
+        <tr v-for="p in problems" :key="rowKey(p)">
+          <td class="muted">{{ p.date }}</td>
+          <td>{{ p.source }}</td>
+          <td class="pro">
+            <a :href="p.link" target="_blank" rel="noopener">{{ p.title }}</a>
+            <span v-if="p.difficulty || (p.tags && p.tags.length)" class="badges" v-html="badges(p)"></span>
+          </td>
+          <td>
+            <a :href="p.link" target="_blank" rel="noopener">{{ p.link }}</a>
+            <button
+              v-if="has(p)"
+              type="button"
+              class="solution-toggle"
+              @click="show(p)"
+            >
+              题解 ▾
+            </button>
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>

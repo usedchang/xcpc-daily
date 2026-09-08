@@ -5,6 +5,7 @@ import ThemeToggle from "./components/ThemeToggle.vue";
 import LatestCard from "./components/LatestCard.vue";
 import FilterBar from "./components/FilterBar.vue";
 import ProblemTable from "./components/ProblemTable.vue";
+import SolutionModal from "./components/SolutionModal.vue";
 import { useUrlState } from "./composables/useState.js";
 
 const allData = ref([]);
@@ -145,6 +146,8 @@ onMounted(async () => {
 
     <ProblemTable v-if="!loadError" :problems="filtered" />
     <p v-else class="muted">加载 data.json 失败：{{ loadError }}。请通过 dev server 或 GitHub Pages 访问。</p>
+
+    <SolutionModal />
 
     <footer>
       交流 QQ 群号：<code>1036787694</code> · 数据文件 <code>data.json</code> · 部署由 GitHub Actions 自动构建

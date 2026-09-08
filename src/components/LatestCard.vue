@@ -1,8 +1,8 @@
 <script setup>
-import { ref, computed } from "vue";
+import { computed } from "vue";
 import { esc } from "../utils.js";
 import { hasEditorial } from "../data/solutions.js";
-import SolutionPanel from "./SolutionPanel.vue";
+import { useSolutionModal } from "../composables/useSolutionModal.js";
 
 const props = defineProps({
   problem: { type: Object, default: null },
@@ -15,11 +15,7 @@ const meta = computed(() => {
 });
 
 const hasSolution = computed(() => hasEditorial(props.problem));
-const showSolution = ref(false);
-
-function toggleSolution() {
-  showSolution.value = !showSolution.value;
-}
+const { show } = useSolutionModal();
 </script>
 
 <template>
@@ -35,9 +31,8 @@ function toggleSolution() {
       </span>
     </div>
     <a class="btn" :href="problem.link" target="_blank" rel="noopener">打开题目 ↗</a>
-    <button v-if="hasSolution" type="button" class="btn ghost" @click="toggleSolution">
-      {{ showSolution ? "收起题解" : "查看题解" }}
+    <button v-if="hasSolution" type="button" class="btn ghost" @click="show(problem)">
+      查看题解
     </button>
-    <SolutionPanel v-if="showSolution" :problem="problem" />
   </section>
 </template>

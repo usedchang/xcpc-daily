@@ -8,6 +8,12 @@
   --tag-bg: #e6efe9;
   --tag-text: #2f7f5f;
   --gold: #b98a2f;
+  /* highlight.js / KaTeX 配色 */
+  --hl-pre-bg: #f6f8fa;
+  --hl-keyword: #d73a49;
+  --hl-string: #0a6c2f;
+  --hl-number: #005cc5;
+  --hl-comment: #6a737d;
 }
 :root.dark {
   --bg: #0f1115;
@@ -19,6 +25,12 @@
   --tag-bg: #1e2a3a;
   --tag-text: #8ecbff;
   --gold: #f5c451;
+  /* highlight.js / KaTeX 配色（暗色） */
+  --hl-pre-bg: #1b1f28;
+  --hl-keyword: #ff7b72;
+  --hl-string: #a5d6ff;
+  --hl-number: #79c0ff;
+  --hl-comment: #8b949e;
 }
 
 * {
@@ -503,6 +515,105 @@ tr:last-child td {
   background: var(--bg);
 }
 
+/* ---------- 居中题解模态框 ---------- */
+.solution-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(20, 22, 26, 0.45);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+.solution-modal-dialog {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  width: min(840px, 100%);
+  max-height: min(82vh, 900px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+.solution-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.solution-modal-title {
+  font-weight: 700;
+  font-size: 16px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.solution-modal-date {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 13px;
+  margin-right: 10px;
+  white-space: nowrap;
+}
+.solution-modal-close {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.solution-modal-close:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.solution-modal-body {
+  padding: 20px 22px 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.solution-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+.solution-modal-body::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 8px;
+}
+
+/* 模态框出现 / 消失动画 */
+.solution-modal-enter-active,
+.solution-modal-leave-active {
+  transition: opacity 0.18s ease;
+}
+.solution-modal-enter-active .solution-modal-dialog,
+.solution-modal-leave-active .solution-modal-dialog {
+  transition: transform 0.18s ease;
+}
+.solution-modal-enter-from,
+.solution-modal-leave-to {
+  opacity: 0;
+}
+.solution-modal-enter-from .solution-modal-dialog,
+.solution-modal-leave-to .solution-modal-dialog {
+  transform: translateY(14px) scale(0.97);
+}
+
 /* 题解正文 / hint 的 markdown 渲染 */
 .markdown-body {
   font-size: 14px;
@@ -535,7 +646,7 @@ tr:last-child td {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 .markdown-body pre {
-  background: var(--bg);
+  background: var(--hl-pre-bg, #f6f8fa);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 12px 14px;
@@ -547,6 +658,7 @@ tr:last-child td {
   padding: 0;
   font-size: 0.9em;
 }
+
 .markdown-body blockquote {
   margin: 0.6em 0;
   padding: 2px 14px;
@@ -615,6 +727,65 @@ tr:last-child td {
 .hint-body {
   padding: 12px 14px;
   border-top: 1px solid var(--border);
+}
+
+/* ---------- 代码高亮（highlight.js 主题覆盖，随护眼/暗色切换） ---------- */
+.hljs {
+  color: var(--text);
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal {
+  color: var(--hl-keyword);
+}
+.hljs-string,
+.hljs-regexp,
+.hljs-addition {
+  color: var(--hl-string);
+}
+.hljs-number,
+.hljs-symbol,
+.hljs-bullet {
+  color: var(--hl-number);
+}
+.hljs-comment,
+.hljs-quote {
+  color: var(--hl-comment);
+  font-style: italic;
+}
+.hljs-title,
+.hljs-title.function_ {
+  color: var(--hl-number);
+}
+.hljs-attr,
+.hljs-attribute,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-type {
+  color: var(--hl-keyword);
+}
+.hljs-built_in,
+.hljs-meta,
+.hljs-doctag {
+  color: var(--hl-keyword);
+}
+.hljs-section,
+.hljs-name {
+  color: var(--hl-number);
+}
+
+/* ---------- KaTeX 公式（随主题换色）；公式内容本身不依赖 .markdown-body，放全局 ---------- */
+.katex {
+  color: var(--text);
+}
+.katex .mathnormal {
+  font-style: italic;
+}
+.katex-display {
+  margin: 0.8em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0;
 }
 
 footer {
