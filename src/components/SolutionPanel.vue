@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { loadSolutionText } from "../data/solutions.js";
 import { renderMarkdown } from "../markdown.js";
 
@@ -10,6 +10,7 @@ const props = defineProps({
 const solution = ref("");
 const loading = ref(false);
 const loadError = ref("");
+const panelRef = ref(null);
 
 const solutionHtml = computed(() =>
   solution.value ? renderMarkdown(solution.value) : ""
@@ -21,6 +22,53 @@ const hints = computed(() =>
 );
 
 const fallbackFile = computed(() => `solutions/${props.problem?.date || "YYYY-MM-DD"}.md`);
+
+function copyCode(btn) {
+  const pre = btn.closest("pre");
+  if (!pre) return;
+  const text = pre.querySelector("code")?.innerText ?? "";
+
+  // 优先用异步剪贴板，失败时回退到 execCommand（兼容非安全上下文）
+  const done = () => {
+    btn.textContent = "copied";
+    btn.classList.add("copied");
+    window.setTimeout(() => {
+      btn.textContent = "copy";
+      btn.classList.remove("copied");
+    }, 1200);
+  };
+
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+  } else {
+    fallbackCopy(text, done);
+  }
+}
+
+function fallbackCopy(text, done) {
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+    done();
+  } catch (e) {
+    done();
+  }
+}
+
+// 点击事件委托：代码块右上角的 copy 按钮
+function onClick(e) {
+  const btn = e.target.closest(".code-copy");
+  if (btn && panelRef.value?.contains(btn)) copyCode(btn);
+}
+
+onMounted(() => document.addEventListener("click", onClick));
+onBeforeUnmount(() => document.removeEventListener("click", onClick));
 
 async function load() {
   if (!props.problem) {
@@ -44,7 +92,7 @@ watch(() => props.problem, load, { immediate: true });
 </script>
 
 <template>
-  <div class="solution-panel">
+  <div ref="panelRef" class="solution-panel">
     <div v-if="loading" class="muted">题解加载中…</div>
 
     <template v-else>

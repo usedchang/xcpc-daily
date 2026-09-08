@@ -677,12 +677,43 @@ td.raw-link a:hover {
   border-radius: 8px;
   padding: 12px 14px;
   overflow-x: auto;
+  position: relative;
 }
 .markdown-body pre code {
   background: none;
   color: inherit;
   padding: 0;
   font-size: 0.9em;
+}
+
+/* 代码块右上角 copy 按钮 */
+.code-copy {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--card);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.markdown-body pre:hover .code-copy,
+.code-copy:focus-visible {
+  opacity: 1;
+}
+.code-copy:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.code-copy.copied {
+  color: var(--accent);
+  border-color: var(--accent);
+  opacity: 1;
 }
 
 .markdown-body blockquote {

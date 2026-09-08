@@ -43,7 +43,9 @@ const md = new MarkdownIt({
         ? hljs.highlight(str, { language: lang }).value
         : hljs.highlightAuto(str).value;
     const langName = lang || "";
-    return `<pre class="hljs"><code class="language-${langName}">${code}</code></pre>`;
+    // copy 按钮放在 pre 右上角；文本用 textContent 读取，code 内容已在 highlight 中转义。
+    const btn = '<button type="button" class="code-copy">copy</button>';
+    return `<pre class="hljs">${btn}<code class="language-${langName}">${code}</code></pre>`;
   },
 })
   .use(markdownItKatex, {
