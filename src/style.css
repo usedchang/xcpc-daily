@@ -123,6 +123,14 @@ header p {
 .btn:hover {
   opacity: 0.9;
 }
+.btn.ghost {
+  background: var(--card);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  margin-left: 8px;
+  cursor: pointer;
+  font-family: inherit;
+}
 
 /* ---------- 工具栏 ---------- */
 .toolbar {
@@ -470,6 +478,143 @@ tr:last-child td {
 }
 .muted {
   color: var(--muted);
+}
+
+/* ---------- 题解 ---------- */
+.solution-toggle {
+  margin-top: 8px;
+  display: inline-block;
+  background: var(--card);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.solution-toggle:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.solution-cell {
+  background: var(--bg);
+}
+
+/* 题解正文 / hint 的 markdown 渲染 */
+.markdown-body {
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: break-word;
+}
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4 {
+  margin: 1em 0 0.4em;
+  line-height: 1.35;
+}
+.markdown-body h1 { font-size: 1.4em; }
+.markdown-body h2 { font-size: 1.25em; }
+.markdown-body h3 { font-size: 1.1em; }
+.markdown-body h4 { font-size: 1em; }
+.markdown-body p {
+  margin: 0.4em 0;
+}
+.markdown-body a {
+  color: var(--accent);
+}
+.markdown-body code {
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.92em;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+.markdown-body pre {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+.markdown-body pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  font-size: 0.9em;
+}
+.markdown-body blockquote {
+  margin: 0.6em 0;
+  padding: 2px 14px;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+}
+.markdown-body ul,
+.markdown-body ol {
+  margin: 0.4em 0;
+  padding-left: 1.6em;
+}
+.markdown-body table {
+  width: auto;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  margin: 0.6em 0;
+}
+.markdown-body table th,
+.markdown-body table td {
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+}
+.markdown-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+.markdown-body hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1em 0;
+}
+
+/* hint 手风琴：仅点击标题时展开内容（类比 codeforces 的 Hint） */
+.hints {
+  margin-top: 12px;
+}
+.hint {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 8px 0;
+  background: var(--card);
+  overflow: hidden;
+}
+.hint summary {
+  cursor: pointer;
+  padding: 8px 14px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--accent);
+  list-style: none;
+  user-select: none;
+}
+.hint summary::-webkit-details-marker {
+  display: none;
+}
+.hint summary::before {
+  content: "▸ ";
+}
+.hint[open] summary::before {
+  content: "▾ ";
+}
+.hint summary:hover {
+  background: var(--tag-bg);
+}
+.hint-body {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
 }
 
 footer {

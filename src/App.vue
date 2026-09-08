@@ -19,13 +19,17 @@ const parseDate = (dateStr) => {
 // 北京时间（UTC+8）的今天，格式 YYYY-MM-DD。
 // 用于只展示「已发布」的题目（date <= 今天），未来的预置题目不泄露。
 function todayInBeijing() {
+  // 直接用 IANA 时区名换算，比手算偏移量可靠：
+  // 手算在本地时区恰好是 UTC+8 / UTC+0 时会退化成 UTC 时间，跨天时会差一天。
   const now = new Date();
-  const bj = new Date(now.getTime() + (8 * 60 + now.getTimezoneOffset()) * 60000);
-  return [
-    bj.getUTCFullYear(),
-    String(bj.getUTCMonth() + 1).padStart(2, "0"),
-    String(bj.getUTCDate()).padStart(2, "0"),
-  ].join("-");
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const get = (type) => parts.find((p) => p.type === type)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")}`;
 }
 
 const todayStr = todayInBeijing();
