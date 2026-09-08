@@ -8,6 +8,9 @@ import javascript from "highlight.js/lib/languages/javascript";
 import bash from "highlight.js/lib/languages/bash";
 import plaintext from "highlight.js/lib/languages/plaintext";
 import "highlight.js/styles/github.css";
+// KaTeX 需要引入其 CSS：不引的话 .katex-mathml（MathML 回退）不会隐藏，
+// 会与 .katex-html 的可视渲染同时显示，表现就是“公式渲染结果后面/下面又多出原文”。
+import "katex/dist/katex.min.css";
 
 // 只按需注册常用语言，避免 highlight.js 全量打包（约 1MB）。
 hljs.registerLanguage("cpp", cpp);
