@@ -6,5 +6,21 @@
     "link": "https://qoj.ac/contest/3871/problem/18689",
     "difficulty": "1300",
     "tags": ["bitmasks","constructive"]
+  },
+  {
+    "date": "2026-09-09",
+    "source": "Northern Eurasia Camp 2026. Day 2",
+    "title": "A. Arithmetic Progression",
+    "link": "https://qoj.ac/contest/4070/problem/20004",
+    "difficulty": "1800",
+    "tags": ["bitmasks","constructive"]
+  },
+  {
+    "date": "2026-09-10",
+    "source": "AtCoder Regular Contest-- 229",
+    "title": "A - AtCoder Reverse Contest",
+    "link": "https://atcoder.jp/contests/arc229/tasks/arc229_a",
+    "difficulty": "1900",
+    "tags": ["constructive"]
   }
 ]

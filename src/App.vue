@@ -16,23 +16,40 @@ const parseDate = (dateStr) => {
   return { y: y || "", m: m || "", d: d || "" };
 };
 
-const sortedAll = computed(() =>
-  [...allData.value].sort((a, b) => String(b.date).localeCompare(String(a.date)))
+// 北京时间（UTC+8）的今天，格式 YYYY-MM-DD。
+// 用于只展示「已发布」的题目（date <= 今天），未来的预置题目不泄露。
+function todayInBeijing() {
+  const now = new Date();
+  const bj = new Date(now.getTime() + (8 * 60 + now.getTimezoneOffset()) * 60000);
+  return [
+    bj.getUTCFullYear(),
+    String(bj.getUTCMonth() + 1).padStart(2, "0"),
+    String(bj.getUTCDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+const todayStr = todayInBeijing();
+
+// 已发布的题目：date <= 今天（北京时间），倒序
+const publishedData = computed(() =>
+  [...allData.value]
+    .filter((it) => String(it.date || "") <= todayStr)
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)))
 );
 
-const latest = computed(() => sortedAll.value[0] || null);
+const latest = computed(() => publishedData.value[0] || null);
 
-// ------- 日历筛选数据：数据中真实存在的日期 -------
+// ------- 日历筛选数据：仅已发布日期 -------
 const dates = computed(() =>
-  allData.value
+  publishedData.value
     .map((it) => parseDate(it.date))
     .filter((d) => d.y && d.m && d.d)
 );
 
-// ------- tag 数据：去重并按出现次数降序 -------
+// ------- tag 数据：仅统计已发布题目 -------
 const tags = computed(() => {
   const count = new Map();
-  (allData.value || []).forEach((it) => {
+  publishedData.value.forEach((it) => {
     (it.tags || []).forEach((t) => count.set(t, (count.get(t) || 0) + 1));
   });
   return [...count.entries()]
@@ -60,7 +77,7 @@ function matches(item) {
   return true;
 }
 
-const filtered = computed(() => sortedAll.value.filter(matches));
+const filtered = computed(() => publishedData.value.filter(matches));
 
 const hasActiveFilter = computed(
   () => !!(filters.q.trim() || filters.year || filters.month || filters.day || filters.tags.length)
@@ -68,8 +85,8 @@ const hasActiveFilter = computed(
 
 const resultInfo = computed(() =>
   hasActiveFilter.value
-    ? `筛选结果：${filtered.value.length} / ${allData.value.length} 题`
-    : `共 ${allData.value.length} 题`
+    ? `筛选结果：${filtered.value.length} / ${publishedData.value.length} 题`
+    : `共 ${publishedData.value.length} 题`
 );
 
 // ------- 控件事件 -------
