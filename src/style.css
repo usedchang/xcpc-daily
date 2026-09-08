@@ -510,7 +510,6 @@ td.raw-link a:hover {
 
 /* ---------- 题解 ---------- */
 .solution-toggle {
-  margin-top: 8px;
   display: inline-block;
   background: var(--card);
   color: var(--accent);
@@ -527,8 +526,12 @@ td.raw-link a:hover {
   color: #fff;
 }
 
-.solution-cell {
-  background: var(--bg);
+/* 无题解：灰色禁用态 */
+.solution-none {
+  color: var(--muted);
+  opacity: 0.55;
+  font-size: 12px;
+  cursor: not-allowed;
 }
 
 /* ---------- 居中题解模态框 ---------- */

@@ -34,11 +34,12 @@ function badges(p) {
           <th>来源</th>
           <th>题目</th>
           <th>链接</th>
+          <th>题解</th>
         </tr>
       </thead>
       <tbody>
         <tr v-if="problems.length === 0">
-          <td colspan="4" class="muted">没有匹配的题目。</td>
+          <td colspan="5" class="muted">没有匹配的题目。</td>
         </tr>
         <tr v-for="p in problems" :key="rowKey(p)">
           <td class="muted">{{ p.date }}</td>
@@ -49,6 +50,8 @@ function badges(p) {
           </td>
           <td class="raw-link">
             <a :href="p.link" target="_blank" rel="noopener">{{ p.link }}</a>
+          </td>
+          <td class="solution-cell">
             <button
               v-if="has(p)"
               type="button"
@@ -57,6 +60,7 @@ function badges(p) {
             >
               题解
             </button>
+            <span v-else class="solution-none" title="暂无题解">暂无</span>
           </td>
         </tr>
       </tbody>
