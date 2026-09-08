@@ -55,7 +55,7 @@ function badges(p) {
               class="solution-toggle"
               @click="show(p)"
             >
-              题解 ▾
+              题解
             </button>
           </td>
         </tr>
