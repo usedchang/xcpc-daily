@@ -460,9 +460,43 @@ tr:last-child td {
 .pro a {
   color: var(--text);
   text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
 .pro a:hover {
   color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* 链接列：原始 URL 用等宽+弱化色显示，hover 高亮并缩短视觉噪音 */
+td.raw-link a {
+  color: var(--muted);
+  font-size: 12px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  text-decoration: none;
+  word-break: break-all;
+  transition: color 0.2s ease;
+}
+td.raw-link a:hover {
+  color: var(--accent);
+}
+
+/* 统一外部链接小箭头图标（按钮类除外，避免与已有箭头重复） */
+a[target="_blank"][rel~="noopener"]:not(.btn)::after {
+  content: "";
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  margin-left: 4px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 3h5v5M13 3 6 10M11 7l0 5H4 L4 5l5 0' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 3h5v5M13 3 6 10M11 7l0 5H4 L4 5l5 0' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  opacity: 0.55;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+a[target="_blank"][rel~="noopener"]:not(.btn):hover::after {
+  opacity: 1;
+  transform: translate(1px, -1px);
 }
 
 /* 难度 / 标签统一显示在题名下方 */
@@ -636,6 +670,12 @@ tr:last-child td {
 }
 .markdown-body a {
   color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.markdown-body a:hover {
+  border-bottom-color: var(--accent);
 }
 .markdown-body code {
   background: var(--tag-bg);

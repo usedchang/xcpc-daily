@@ -47,7 +47,7 @@ function badges(p) {
             <a :href="p.link" target="_blank" rel="noopener">{{ p.title }}</a>
             <span v-if="p.difficulty || (p.tags && p.tags.length)" class="badges" v-html="badges(p)"></span>
           </td>
-          <td>
+          <td class="raw-link">
             <a :href="p.link" target="_blank" rel="noopener">{{ p.link }}</a>
             <button
               v-if="has(p)"
