@@ -831,18 +831,20 @@ td.raw-link a:hover {
   color: var(--hl-number);
 }
 
-/* ---------- KaTeX 公式（随主题换色）；公式内容本身不依赖 .markdown-body，放全局 ---------- */
-.katex {
+/* ---------- MathJax 公式（随主题换色）；SVG 用 currentColor，容器色即可控制 ---------- */
+mjx-container {
   color: var(--text);
 }
-.katex .mathnormal {
-  font-style: italic;
-}
-.katex-display {
+mjx-container[display="true"] {
+  display: block;
   margin: 0.8em 0;
+  text-align: center;
   overflow-x: auto;
   overflow-y: hidden;
   padding: 4px 0;
+}
+mjx-container svg {
+  color: var(--text);
 }
 
 footer {

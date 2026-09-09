@@ -1,5 +1,5 @@
 import MarkdownIt from "markdown-it";
-import markdownItKatex from "markdown-it-katex";
+import texmath from "markdown-it-texmath";
 import hljs from "highlight.js/lib/core";
 import cpp from "highlight.js/lib/languages/cpp";
 import python from "highlight.js/lib/languages/python";
@@ -8,11 +8,15 @@ import javascript from "highlight.js/lib/languages/javascript";
 import bash from "highlight.js/lib/languages/bash";
 import plaintext from "highlight.js/lib/languages/plaintext";
 import "highlight.js/styles/github.css";
-// KaTeX 需要引入其 CSS：不引的话 .katex-mathml（MathML 回退）不会隐藏，
-// 会与 .katex-html 的可视渲染同时显示，表现就是“公式渲染结果后面/下面又多出原文”。
-import "katex/dist/katex.min.css";
 
-// 只按需注册常用语言，避免 highlight.js 全量打包（约 1MB）。
+import { mathjax } from "mathjax-full/js/mathjax.js";
+import { TeX } from "mathjax-full/js/input/tex.js";
+import { SVG } from "mathjax-full/js/output/svg.js";
+import { LiteAdaptor } from "mathjax-full/js/adaptors/liteAdaptor.js";
+import { RegisterHTMLHandler } from "mathjax-full/js/handlers/html.js";
+import { AllPackages } from "mathjax-full/js/input/tex/AllPackages.js";
+
+// ---------- 代码高亮：按需注册常用语言 ----------
 hljs.registerLanguage("cpp", cpp);
 hljs.registerLanguage("c", cpp);
 hljs.registerLanguage("cc", cpp);
@@ -29,10 +33,31 @@ hljs.registerLanguage("plaintext", plaintext);
 hljs.registerLanguage("text", plaintext);
 hljs.registerLanguage("txt", plaintext);
 
-// 本站样式里通过 .dark 用 CSS 变量重映射高亮配色，
-// 所以这里引入浅色主题的静态色值作为基础，暗色下覆盖即可。
+// ---------- MathJax（替代 KaTeX）：完整支持 \tag \bmod \pmod \frac \dfrac 等 ----------
+const adaptor = new LiteAdaptor();
+RegisterHTMLHandler(adaptor);
 
-// html: false —— 原始 HTML 会被转义，避免 v-html 注入；链接自动识别。
+const texInput = new TeX({ packages: AllPackages, tags: "none" });
+const svgOutput = new SVG({ fontCache: "local" });
+const mjDoc = mathjax.document("", { InputJax: texInput, OutputJax: svgOutput });
+
+// \tag{n} 在 SVG 序列化下拿不到右侧编号，这里转成公式尾部空格 + (n) 文本，
+// 与“由 (1),(2) 式得出 (3)”这类引用保持一致。
+const tagRe = /\\tag\s*\{([^}]*)\}/g;
+function preprocessTex(tex) {
+  return String(tex).replace(tagRe, (_m, label) => `\\qquad(${label})`);
+}
+
+const mathjaxEngine = {
+  // markdown-it-texmath 的 engine 接口
+  renderToString(tex, options) {
+    const display = !!(options && options.displayMode);
+    const node = mjDoc.convert(preprocessTex(tex), { display });
+    return adaptor.outerHTML(node);
+  },
+};
+
+// ---------- markdown-it：方程式在 escape 之前处理，保住反斜杠命令 ----------
 const md = new MarkdownIt({
   html: false,
   linkify: true,
@@ -43,23 +68,23 @@ const md = new MarkdownIt({
         ? hljs.highlight(str, { language: lang }).value
         : hljs.highlightAuto(str).value;
     const langName = lang || "";
-    // copy 按钮放在 pre 右上角；文本用 textContent 读取，code 内容已在 highlight 中转义。
     const btn = '<button type="button" class="code-copy">copy</button>';
     return `<pre class="hljs">${btn}<code class="language-${langName}">${code}</code></pre>`;
   },
-})
-  .use(markdownItKatex, {
-    throwOnError: false,
-    errorColor: "#d9534f",
-    strict: false,
-  });
+});
+
+md.use(texmath, {
+  engine: mathjaxEngine,
+  delimiters: "dollars",
+  katexOptions: { throwOnError: false },
+});
 
 /**
  * 渲染 markdown 为 HTML 字符串。
- * 支持：$...$ / $$...$$ 行内与块级 LaTeX（KaTeX）、```lang 代码块着色（highlight.js）。
+ * 支持：$...$ / $$...$$ 行内与块级 LaTeX（MathJax，含 \tag \bmod \pmod \frac \dfrac），
+ * ```lang 代码块着色（highlight.js）+ copy 按钮。
  * 供题解正文与 hint 使用；结果只放进 SolutionPanel 的 v-html。
  */
 export function renderMarkdown(text) {
   return md.render(String(text ?? ""));
 }
-

@@ -4,3 +4,6 @@ dist/
 *.local
 .reasonix/
 reasonix.toml
+
+# 本地编译/输出产物
+solutions/output/
