@@ -28,7 +28,7 @@
     "tags": ["sqrt trick"],
     "hints":[
       "直接暴力的复杂度是多少?对所有区间记忆化的复杂度是多少?",
-      "能否按数据范围分别使用两种算法以此平衡复杂度?"
+      "能否按数据范围分别使用两种不同算法以此平衡复杂度?"
     ]
   },
   {
@@ -54,5 +54,17 @@
     "link": "https://www.luogu.com.cn/problem/P4038",
     "difficulty": "1700",
     "tags": ["graphs"]
+  },
+  {
+    "date": "2026-09-16",
+    "source": "The 2021 ICPC China Zhejiang Provincial Programming Contest (18th)",
+    "title": "Fair Distribution",
+    "link": "https://qoj.ac/problem/10892",
+    "difficulty": "省赛中后期",
+    "tags": ["sqrt trick"],
+    "hints":[
+      "直接暴力的复杂度是多少?对所有区间记忆化的复杂度是多少?",
+      "能否按数据范围分别使用两种不同算法以此平衡复杂度?"
+    ]
   }
 ]
