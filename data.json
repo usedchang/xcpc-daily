@@ -13,7 +13,11 @@
     "title": "A. Arithmetic Progression",
     "link": "https://qoj.ac/contest/4070/problem/20004",
     "difficulty": "1800",
-    "tags": ["bitmasks","constructive"]
+    "tags": ["bitmasks","constructive"],
+    "hints": [
+      "f(x)的下界是a,思考何时取到下界?",
+      "当(ax+b)&a=0时取到下界,思考如何构造出 (ax+b)&a=0?"
+    ]
   },
   {
     "date": "2026-09-10",

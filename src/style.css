@@ -749,18 +749,20 @@ td.raw-link a:hover {
   margin: 1em 0;
 }
 
-/* hint 手风琴：仅点击标题时展开内容（类比 codeforces 的 Hint） */
+/* hint / C++ 代码块手风琴：仅点击标题时展开内容（类比 codeforces 的 Hint） */
 .hints {
-  margin-top: 12px;
+  margin: 12px 0;
 }
-.hint {
+.hint,
+.code-details {
   border: 1px solid var(--border);
   border-radius: 8px;
   margin: 8px 0;
   background: var(--card);
   overflow: hidden;
 }
-.hint summary {
+.hint summary,
+.code-details summary {
   cursor: pointer;
   padding: 8px 14px;
   font-weight: 600;
@@ -769,21 +771,31 @@ td.raw-link a:hover {
   list-style: none;
   user-select: none;
 }
-.hint summary::-webkit-details-marker {
+.hint summary::-webkit-details-marker,
+.code-details summary::-webkit-details-marker {
   display: none;
 }
-.hint summary::before {
+.hint summary::before,
+.code-details summary::before {
   content: "▸ ";
 }
-.hint[open] summary::before {
+.hint[open] summary::before,
+.code-details[open] summary::before {
   content: "▾ ";
 }
-.hint summary:hover {
+.hint summary:hover,
+.code-details summary:hover {
   background: var(--tag-bg);
 }
 .hint-body {
   padding: 12px 14px;
   border-top: 1px solid var(--border);
+}
+.code-details pre {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
 }
 
 /* ---------- 代码高亮（highlight.js 主题覆盖，随护眼/暗色切换） ---------- */
@@ -869,5 +881,32 @@ footer a {
   th,
   td {
     padding: 10px;
+  }
+
+  /* 手机端工具栏改为纵向堆叠，日期/标签面板在文档流内全宽展开，
+     避免 absolute 定位（right: 0 锚在按钮上）把面板顶出屏幕左侧。 */
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .toolbar .grow {
+    width: 100%;
+    max-width: none;
+    flex-basis: auto;
+  }
+  .dropdown {
+    width: 100%;
+  }
+  .dropdown-trigger {
+    width: 100%;
+    justify-content: center;
+  }
+  .dropdown-panel {
+    position: static;
+    width: auto;
+    max-width: none;
+    margin-top: 10px;
+    padding: 12px;
+    box-shadow: none;
   }
 }

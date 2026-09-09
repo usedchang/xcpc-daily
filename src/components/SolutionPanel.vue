@@ -98,14 +98,14 @@ watch(() => props.problem, load, { immediate: true });
     <template v-else>
       <div v-if="loadError" class="muted">题解加载失败：{{ loadError }}</div>
 
-      <div v-if="solutionHtml" class="markdown-body" v-html="solutionHtml"></div>
-
       <div v-if="hints.length" class="hints">
         <details v-for="h in hints" :key="h.title" class="hint">
           <summary>{{ h.title }}</summary>
           <div class="markdown-body hint-body" v-html="h.html"></div>
         </details>
       </div>
+
+      <div v-if="solutionHtml" class="markdown-body" v-html="solutionHtml"></div>
 
       <div v-if="!solutionHtml && !hints.length" class="muted">
         暂无题解内容：请在 <code>{{ fallbackFile }}</code> 添加题解，
