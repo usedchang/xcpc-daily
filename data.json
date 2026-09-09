@@ -21,6 +21,18 @@
   },
   {
     "date": "2026-09-10",
+    "source": "Luogu P8572",
+    "title": "P8572 [JRKSJ R6] Eltaw",
+    "link": "https://www.luogu.com.cn/problem/P8572",
+    "difficulty": "1800",
+    "tags": ["sqrt trick"],
+    "hints":[
+      "操作时,对于某些位置,能否一次操作批量对其倍数处理?",
+      "查询时,对于某些位置"
+    ]
+  },
+  {
+    "date": "2026-09-11",
     "source": "AtCoder Regular Contest-- 229",
     "title": "A - AtCoder Reverse Contest",
     "link": "https://atcoder.jp/contests/arc229/tasks/arc229_a",
@@ -28,20 +40,12 @@
     "tags": ["constructive"]
   },
   {
-    "date": "2026-09-11",
+    "date": "2026-09-12",
     "source": "[ICPC2023 Nanjing R] ICPC2023 区域赛南京站重现赛",
     "title": "P13957 [ICPC 2023 Nanjing R] 背包",
     "link": "https://www.luogu.com.cn/problem/P13957",
     "difficulty": "1600",
     "tags": ["dp","greedy"]
-  },
-  {
-    "date": "2026-09-12",
-    "source": "Luogu P1483",
-    "title": "P1483 序列变换",
-    "link": "https://www.luogu.com.cn/problem/P1483",
-    "difficulty": "1600",
-    "tags": ["sqrt trick"]
   },
   {
     "date": "2026-09-13",
