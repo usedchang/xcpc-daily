@@ -33,11 +33,11 @@
   },
   {
     "date": "2026-09-11",
-    "source": "AtCoder Regular Contest-- 229",
-    "title": "A - AtCoder Reverse Contest",
-    "link": "https://atcoder.jp/contests/arc229/tasks/arc229_a",
-    "difficulty": "1900",
-    "tags": ["constructive"]
+    "source": "The 2nd Universal Cup. Stage 2: SPb",
+    "title": "A. Mixed Messages",
+    "link": "https://qoj.ac/contest/1356/problem/7175/statement/default",
+    "difficulty": "ucup 前中期",
+    "tags": ["dp"]
   },
   {
     "date": "2026-09-12",
