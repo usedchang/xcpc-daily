@@ -41,6 +41,14 @@
   },
   {
     "date": "2026-09-12",
+    "source": "The 4th Universal Cup. Stage 6: Grand Prix of Shenyang",
+    "title": "平方王国",
+    "link": "https://qoj.ac/contest/2641/problem/14940/statement/zh_cn",
+    "difficulty": "区域赛铜牌",
+    "tags": ["binary search","math"]
+  },
+  {
+    "date": "2026-09-13",
     "source": "[ICPC2023 Nanjing R] ICPC2023 区域赛南京站重现赛",
     "title": "P13957 [ICPC 2023 Nanjing R] 背包",
     "link": "https://www.luogu.com.cn/problem/P13957",
@@ -48,7 +56,7 @@
     "tags": ["dp","greedy"]
   },
   {
-    "date": "2026-09-13",
+    "date": "2026-09-14",
     "source": "Luogu P4038",
     "title": "P4038 [CERC 1995] John's Trip",
     "link": "https://www.luogu.com.cn/problem/P4038",
@@ -56,15 +64,11 @@
     "tags": ["graphs"]
   },
   {
-    "date": "2026-09-16",
+    "date": "2026-09-15",
     "source": "The 2021 ICPC China Zhejiang Provincial Programming Contest (18th)",
     "title": "Fair Distribution",
     "link": "https://qoj.ac/problem/10892",
     "difficulty": "省赛中后期",
-    "tags": ["sqrt trick"],
-    "hints":[
-      "直接暴力的复杂度是多少?对所有区间记忆化的复杂度是多少?",
-      "能否按数据范围分别使用两种不同算法以此平衡复杂度?"
-    ]
+    "tags": ["sqrt trick"]
   }
 ]
