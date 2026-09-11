@@ -165,10 +165,111 @@ md.renderer.rules.fence = (tokens, idx, options, env, slf) => {
   return `<details class="code-details"><summary>${label}</summary>${rendered}</details>`;
 };
 
+// ---------- Obsidian 风格 callout：> [!question] 标题 ----------
+// markdown-it 不认 callout 语法，首行为 [!question] 的引用块默认会被当成普通引用
+// 原样输出 "[!question] ..."。这里把它转成带图标与标题的块。
+const CALLOUT_HEAD_RE = /^\[!question\][+-]?[ \t]*(.*?)[ \t]*(?:\n|$)/;
+
+const QUESTION_ICON =
+  '<svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"' +
+  ' stroke-width="1.8" stroke-linecap="round" aria-hidden="true">' +
+  '<circle cx="12" cy="12" r="9.2"></circle>' +
+  '<path d="M9.7 9.4a2.4 2.4 0 1 1 3.1 2.3c-.6.2-.9.7-.9 1.3v.5"></path>' +
+  '<circle cx="12" cy="16.7" r="1.05" fill="currentColor" stroke="none"></circle>' +
+  "</svg>";
+
+function htmlBlockToken(state, html) {
+  const token = new state.Token("html_block", "", 0);
+  token.content = html;
+  token.block = true;
+  token.map = null;
+  return token;
+}
+
+md.core.ruler.push("callout_question", (state) => {
+  const tokens = state.tokens;
+
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i].type !== "blockquote_open") continue;
+
+    const paraOpen = tokens[i + 1];
+    const inline = tokens[i + 2];
+    if (!paraOpen || paraOpen.type !== "paragraph_open") continue;
+    if (!inline || inline.type !== "inline") continue;
+
+    const head = inline.children && inline.children[0];
+    if (!head || head.type !== "text") continue;
+    const m = CALLOUT_HEAD_RE.exec(head.content);
+    if (!m) continue;
+
+    // 标题自带行内语法（公式/链接…）时会被切成多个子节点，这里不去误伤，降级为普通引用；
+    // 标题与正文之间的软换行是独立 softbreak 节点，属于正常情况
+    const rest = head.content.slice(m[0].length);
+    const nextChild = inline.children[1];
+    if (!rest && nextChild && nextChild.type !== "softbreak") continue;
+
+    // 找配对的 blockquote_close（考虑嵌套）
+    let depth = 0;
+    let close = -1;
+    for (let j = i; j < tokens.length; j++) {
+      if (tokens[j].type === "blockquote_open") depth++;
+      else if (tokens[j].type === "blockquote_close" && --depth === 0) {
+        close = j;
+        break;
+      }
+    }
+    if (close < 0) continue;
+
+    // 从首个子节点剥掉 "[!question] 标题"，剩下的即正文
+    const title = m[1].trim();
+    if (rest) {
+      head.content = rest;
+    } else {
+      inline.children.shift();
+      // 标题与正文之间的软换行单独成节点，去掉以免段落多出前导空白
+      const body = inline.children[0];
+      if (body && body.type === "softbreak") inline.children.shift();
+      else if (body && body.type === "text") body.content = body.content.replace(/^\n/, "");
+    }
+
+    const titleHtml =
+      '<div class="callout-title">' +
+      QUESTION_ICON +
+      md.utils.escapeHtml(title) +
+      "</div>";
+
+    // 标题单独成行；原段落被掏空时整段替换为标题，否则插到段落之前
+    let closeIdx;
+    if (inline.children.length === 0) {
+      tokens.splice(i + 1, 3, htmlBlockToken(state, titleHtml));
+      closeIdx = close - 2;
+    } else {
+      tokens.splice(i + 1, 0, htmlBlockToken(state, titleHtml));
+      closeIdx = close + 1;
+    }
+
+    const openTok = tokens[i];
+    openTok.type = "html_block";
+    openTok.tag = "";
+    openTok.nesting = 0;
+    openTok.markup = "";
+    openTok.content = '<div class="callout callout-question">';
+    openTok.children = null;
+
+    const closeTok = tokens[closeIdx];
+    closeTok.type = "html_block";
+    closeTok.tag = "";
+    closeTok.nesting = 0;
+    closeTok.markup = "";
+    closeTok.content = "</div>";
+    closeTok.children = null;
+  }
+});
+
 /**
  * 渲染 markdown 为 HTML 字符串。
  * 支持：$...$ / $$...$$ 行内与块级 LaTeX（MathJax，含 \tag \bmod \pmod \frac \dfrac），
- * ```lang 代码块着色（highlight.js）+ copy 按钮。
+ * ```lang 代码块着色（highlight.js）+ copy 按钮，> [!question] callout。
  * 供题解正文与 hint 使用；结果只放进 SolutionPanel 的 v-html。
  */
 export function renderMarkdown(text) {

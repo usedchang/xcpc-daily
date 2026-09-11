@@ -722,6 +722,33 @@ td.raw-link a:hover {
   border-left: 3px solid var(--border);
   color: var(--muted);
 }
+/* > [!question] callout（由 markdown.js 生成） */
+.markdown-body .callout {
+  margin: 0.8em 0;
+  padding: 10px 14px 12px;
+  border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--border));
+  border-left: 4px solid var(--gold);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--gold) 8%, transparent);
+}
+.markdown-body .callout-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 600;
+  color: var(--gold);
+}
+.markdown-body .callout-icon {
+  width: 17px;
+  height: 17px;
+  flex: none;
+}
+.markdown-body .callout > :last-child {
+  margin-bottom: 0;
+}
+.markdown-body .callout p {
+  margin: 0.35em 0 0;
+}
 .markdown-body ul,
 .markdown-body ol {
   margin: 0.4em 0;
