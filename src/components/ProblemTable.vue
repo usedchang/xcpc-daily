@@ -52,15 +52,11 @@ function badges(p) {
             <a :href="p.link" target="_blank" rel="noopener">{{ p.link }}</a>
           </td>
           <td class="solution-cell">
-            <button
-              v-if="has(p)"
-              type="button"
-              class="solution-toggle"
-              @click="show(p)"
-            >
-              题解
+            <!-- 每道题都可进弹窗：没有官方题解时这一栏就是「讨论 / 投稿」的入口，
+                 否则评论区只能用在少数有官方题解的题上 -->
+            <button type="button" class="solution-toggle" @click="show(p)">
+              {{ has(p) ? "题解" : "讨论" }}
             </button>
-            <span v-else class="solution-none" title="暂无题解">暂无</span>
           </td>
         </tr>
       </tbody>

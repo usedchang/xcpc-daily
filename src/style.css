@@ -937,3 +937,236 @@ footer a {
     box-shadow: none;
   }
 }
+
+/* ---------- 社区区块（社区题解 / 讨论 / 投稿入口） ---------- */
+.community-block {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.community-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.community-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+/* 标题旁标注「这是哪道题」，只用于页面底部那份评论区 */
+.community-sub {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* 区块标题右侧的外链，例如「全部讨论 ↗」 */
+.community-head-link {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.community-head-link:hover {
+  text-decoration: underline;
+}
+.community-submit-link {
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+.community-submit-link:hover {
+  text-decoration: underline;
+}
+.community-hint {
+  font-size: 13px;
+  line-height: 1.7;
+}
+.community-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.community-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg);
+}
+.community-item-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+}
+.community-item-head:hover {
+  background: var(--tag-bg);
+}
+.community-avatar {
+  border-radius: 50%;
+  flex: none;
+  background: var(--border);
+}
+.community-author {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.community-title {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.community-caret {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+  flex: none;
+}
+.community-item-body {
+  padding: 4px 14px 14px;
+  border-top: 1px solid var(--border);
+}
+.community-item-foot {
+  margin-top: 10px;
+  font-size: 12px;
+}
+.giscus-host {
+  margin-top: 4px;
+  min-height: 60px;
+}
+.site-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 24px 0 8px;
+}
+
+/* ---------- 投稿生成器 ---------- */
+.submit-modal {
+  z-index: 1100; /* 需要盖在题解弹窗（z-index: 1000）之上 */
+}
+.submit-lead {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.submit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.submit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.submit-label {
+  font-size: 13px;
+  font-weight: 600;
+}
+.submit-label em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 12px;
+}
+.submit-field input,
+.submit-field textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+.submit-field textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  line-height: 1.6;
+  resize: vertical;
+}
+.submit-field input:focus,
+.submit-field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.submit-tip {
+  font-size: 12px;
+  color: var(--muted);
+}
+.submit-preview {
+  margin-bottom: 14px;
+  font-size: 13px;
+}
+.submit-preview summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+.submit-pre {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--hl-pre-bg);
+  overflow-x: auto;
+  font-size: 12px;
+  line-height: 1.6;
+  max-height: 260px;
+}
+.submit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.submit-wait {
+  font-size: 13px;
+}
+.submit-foot {
+  margin-top: 16px;
+  line-height: 1.7;
+}
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .submit-grid {
+    grid-template-columns: 1fr;
+  }
+}

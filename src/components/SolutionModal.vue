@@ -2,6 +2,8 @@
 import { onMounted, onBeforeUnmount } from "vue";
 import { useSolutionModal } from "../composables/useSolutionModal.js";
 import SolutionPanel from "./SolutionPanel.vue";
+import CommunitySolutions from "./CommunitySolutions.vue";
+import CommentSection from "./CommentSection.vue";
 
 const { problem, open, close } = useSolutionModal();
 
@@ -27,6 +29,8 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKeydown));
           </header>
           <div class="solution-modal-body">
             <SolutionPanel :problem="problem" />
+            <CommunitySolutions :problem="problem" />
+            <CommentSection :problem="problem" />
           </div>
         </div>
       </div>

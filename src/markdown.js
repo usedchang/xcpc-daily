@@ -1,4 +1,5 @@
 import MarkdownIt from "markdown-it";
+import DOMPurify from "dompurify";
 import hljs from "highlight.js/lib/core";
 import cpp from "highlight.js/lib/languages/cpp";
 import python from "highlight.js/lib/languages/python";
@@ -32,13 +33,11 @@ hljs.registerLanguage("plaintext", plaintext);
 hljs.registerLanguage("text", plaintext);
 hljs.registerLanguage("txt", plaintext);
 
-// ---------- MathJax：完整支持 \tag \bmod \pmod \frac \dfrac 等 ----------
+// ---------- MathJax ----------
+// RegisterHTMLHandler 是全局注册，重复调用会注册多个 handler；LiteAdaptor 本身无状态，
+// 所以只注册一次，之后所有渲染实例共享它（实例之间只隔开 TeX 宏包与 document）。
 const adaptor = new LiteAdaptor();
 RegisterHTMLHandler(adaptor);
-
-const texInput = new TeX({ packages: AllPackages, tags: "none" });
-const svgOutput = new SVG({ fontCache: "local" });
-const mjDoc = mathjax.document("", { InputJax: texInput, OutputJax: svgOutput });
 
 // \tag{n} 在纯 SVG 序列化下拿不到右侧编号，转成公式尾部空格 + (n) 文本。
 const tagRe = /\\tag\s*\{([^}]*)\}/g;
@@ -46,29 +45,27 @@ function preprocessTex(tex) {
   return String(tex).replace(tagRe, (_m, label) => `\\qquad(${label})`);
 }
 
-function renderTex(tex, display) {
-  const node = mjDoc.convert(preprocessTex(tex), { display });
-  return adaptor.outerHTML(node);
+/**
+ * 用给定的 TeX 宏包集合造一个 `renderTex(tex, display) -> svg outerHTML`。
+ *
+ * 官方题解与社区题解各持一个实例，区别只在宏包集合：
+ * 社区用受限集合（见 COMMUNITY_TEX_PACKAGES），这是 UGC 安全的第一道闸——
+ * `\href` / `\class` / `\style` 这些能产出 HTML 属性的命令全部来自 `html` 宏包。
+ */
+function createTexEngine(packages) {
+  const inputJax = new TeX({ packages, tags: "none" });
+  const outputJax = new SVG({ fontCache: "local" });
+  const doc = mathjax.document("", { InputJax: inputJax, OutputJax: outputJax });
+  return (tex, display) => {
+    const node = doc.convert(preprocessTex(tex), { display });
+    return adaptor.outerHTML(node);
+  };
 }
 
 // ---------- markdown-it：自定义 $...$ 与 $$...$$ 规则（不依赖 CommonJS 的 texmath） ----------
-const md = new MarkdownIt({
-  html: false,
-  linkify: true,
-  breaks: false,
-  highlight(str, lang) {
-    const code =
-      lang && hljs.getLanguage(lang)
-        ? hljs.highlight(str, { language: lang }).value
-        : hljs.highlightAuto(str).value;
-    const langName = lang || "";
-    const btn = '<button type="button" class="code-copy">copy</button>';
-    return `<pre class="hljs">${btn}<code class="language-${langName}">${code}</code></pre>`;
-  },
-});
 
 // 行内 $...$：与 markdown-it-katex 一致，$ 后不能紧跟空白，$ 前不能是空白。
-md.inline.ruler.before("escape", "math_inline", (state, silent) => {
+function mathInlineRule(state, silent) {
   const src = state.src;
   if (src[state.pos] !== "$") return false;
   if (src[state.pos + 1] === "$") return false; // 交给 display
@@ -93,12 +90,10 @@ md.inline.ruler.before("escape", "math_inline", (state, silent) => {
     end += 1;
   }
   return false;
-});
-
-md.renderer.rules.math_inline = (tokens, idx) => renderTex(tokens[idx].content, false);
+}
 
 // 块级 $$...$$：匹配以 $$ 起止的段落
-md.block.ruler.before("fence", "math_display", (state, startLine, endLine, silent) => {
+function mathDisplayRule(state, startLine, endLine, silent) {
   let pos = state.bMarks[startLine] + state.tShift[startLine];
   let max = state.eMarks[startLine];
   const line = state.src.slice(pos, max);
@@ -147,23 +142,10 @@ md.block.ruler.before("fence", "math_display", (state, startLine, endLine, silen
     state.line = nextLine + 1;
   }
   return true;
-});
-
-md.renderer.rules.math_display = (tokens, idx) => renderTex(tokens[idx].content, true);
+}
 
 // ---------- C++ 代码块：默认折叠，点击 summary 展开（与 hint 一致） ----------
 const cppLangs = new Set(["cpp", "c", "cc", "cxx", "h", "hpp"]);
-const defaultFence = md.renderer.rules.fence;
-
-md.renderer.rules.fence = (tokens, idx, options, env, slf) => {
-  const rendered = defaultFence(tokens, idx, options, env, slf);
-  const info = String(tokens[idx].info || "").trim();
-  const lang = info.split(/\s+/)[0].toLowerCase();
-  if (!cppLangs.has(lang)) return rendered;
-
-  const label = lang === "c" ? "C 代码" : "C++ 代码";
-  return `<details class="code-details"><summary>${label}</summary>${rendered}</details>`;
-};
 
 // ---------- Obsidian 风格 callout：> [!question] 标题 ----------
 // markdown-it 不认 callout 语法，首行为 [!question] 的引用块默认会被当成普通引用
@@ -186,8 +168,10 @@ function htmlBlockToken(state, html) {
   return token;
 }
 
-md.core.ruler.push("callout_question", (state) => {
+function calloutRule(state) {
   const tokens = state.tokens;
+  // core ruler 的 state 上有 md 引用，用它取 utils（工厂化后不能再闭包捕获实例）
+  const md = state.md;
 
   for (let i = 0; i < tokens.length; i++) {
     if (tokens[i].type !== "blockquote_open") continue;
@@ -264,14 +248,120 @@ md.core.ruler.push("callout_question", (state) => {
     closeTok.content = "</div>";
     closeTok.children = null;
   }
-});
+}
+
+/**
+ * 造一个 markdown-it 实例。全部自定义渲染规则都在这里注册，与 TeX 引擎解耦：
+ * 官方题解和社区题解共用同一套规则，只换 TeX 宏包集合。
+ */
+function createRenderer(renderTex) {
+  const md = new MarkdownIt({
+    html: false,
+    linkify: true,
+    breaks: false,
+    highlight(str, lang) {
+      const code =
+        lang && hljs.getLanguage(lang)
+          ? hljs.highlight(str, { language: lang }).value
+          : hljs.highlightAuto(str).value;
+      const langName = lang || "";
+      const btn = '<button type="button" class="code-copy">copy</button>';
+      return `<pre class="hljs">${btn}<code class="language-${langName}">${code}</code></pre>`;
+    },
+  });
+
+  md.inline.ruler.before("escape", "math_inline", mathInlineRule);
+  md.renderer.rules.math_inline = (tokens, idx) => renderTex(tokens[idx].content, false);
+
+  md.block.ruler.before("fence", "math_display", mathDisplayRule);
+  md.renderer.rules.math_display = (tokens, idx) => renderTex(tokens[idx].content, true);
+
+  const defaultFence = md.renderer.rules.fence;
+  md.renderer.rules.fence = (tokens, idx, options, env, slf) => {
+    const rendered = defaultFence(tokens, idx, options, env, slf);
+    const info = String(tokens[idx].info || "").trim();
+    const lang = info.split(/\s+/)[0].toLowerCase();
+    if (!cppLangs.has(lang)) return rendered;
+
+    const label = lang === "c" ? "C 代码" : "C++ 代码";
+    return `<details class="code-details"><summary>${label}</summary>${rendered}</details>`;
+  };
+
+  md.core.ruler.push("callout_question", calloutRule);
+
+  return md;
+}
+
+// ---------- 官方题解渲染器（可信内容，不做 sanitize） ----------
+const officialMd = createRenderer(createTexEngine(AllPackages));
 
 /**
  * 渲染 markdown 为 HTML 字符串。
  * 支持：$...$ / $$...$$ 行内与块级 LaTeX（MathJax，含 \tag \bmod \pmod \frac \dfrac），
  * ```lang 代码块着色（highlight.js）+ copy 按钮，> [!question] callout。
- * 供题解正文与 hint 使用；结果只放进 SolutionPanel 的 v-html。
+ * 供官方题解正文与 hint 使用；内容来自本仓库，视为可信，因此不 sanitize。
  */
 export function renderMarkdown(text) {
-  return md.render(String(text ?? ""));
+  return officialMd.render(String(text ?? ""));
+}
+
+// ---------- 社区投稿渲染器（外部内容，强制 sanitize） ----------
+
+/**
+ * 受限 TeX 宏包：相对 AllPackages 去掉了
+ *   - `html`：提供 \href \class \style \cssId —— 能在公式里产出带任意 href 的 <a>，
+ *     是 UGC 场景下 MathJax 侧真正的注入面；
+ *   - `require` / `autoload`：运行时动态加载任意扩展；
+ *   - `action` / `verb` 等与题解无关的命令。
+ */
+const COMMUNITY_TEX_PACKAGES = [
+  "base",
+  "ams",
+  "mathtext",
+  "newcommand",
+  "noundefined",
+  "color",
+  "boldsymbol",
+  "textmacros",
+];
+
+const communityMd = createRenderer(createTexEngine(COMMUNITY_TEX_PACKAGES));
+
+/**
+ * DOMPurify 配置。
+ *
+ * 关键点：MathJax 的 SVG 用 `<use xlink:href="#MJX-...">` 引用字形，
+ * 而 DOMPurify 3.x 即使不给任何白名单也会把 `<use>` 整个移除（实测：不显式加回时，
+ * 公式 SVG 里的 use / xlink:href 会全部消失，公式变成一片空白）。
+ * 所以必须用 ADD_TAGS / ADD_ATTR 把这两个补回来。
+ *
+ * 安全性不受影响：xlink:href 属于 URI 属性，DOMPurify 仍会校验它的值（javascript: 等会被清掉）；
+ * 而且社区正文里的裸 HTML 在 markdown-it 层（html: false）就已经进不来了。
+ *
+ * 其余沿用 DOMPurify 的默认安全语义（移除 <script>、on* 事件属性、危险协议 URL），
+ * 再额外禁掉几个题解里毫无正当用途的标签。
+ */
+const PURIFY_CONFIG = {
+  USE_PROFILES: { html: true, svg: true, svgFilters: true, mathMl: true },
+  ADD_TAGS: ["use"],
+  ADD_ATTR: ["xlink:href"],
+  FORBID_TAGS: [
+    "style",
+    "iframe",
+    "frame",
+    "frameset",
+    "object",
+    "embed",
+    "link",
+    "meta",
+    "base",
+  ],
+};
+
+/**
+ * 渲染社区投稿题解的 markdown：与官方同一条管线，但用受限 TeX 宏包并强制 sanitize。
+ * 社区内容是外部输入，即便已经人工 review 过，也不该假设「一定审到位了」。
+ */
+export function renderUserMarkdown(text) {
+  return DOMPurify.sanitize(communityMd.render(String(text ?? "")), PURIFY_CONFIG);
 }

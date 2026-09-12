@@ -6,7 +6,14 @@ import LatestCard from "./components/LatestCard.vue";
 import FilterBar from "./components/FilterBar.vue";
 import ProblemTable from "./components/ProblemTable.vue";
 import SolutionModal from "./components/SolutionModal.vue";
+import SubmitSolution from "./components/SubmitSolution.vue";
+import CommentSection from "./components/CommentSection.vue";
 import { useUrlState } from "./composables/useState.js";
+import { useSubmitModal } from "./composables/useSubmitModal.js";
+import { COMMUNITY } from "./config/community.js";
+
+// 页面顶部的全局投稿入口（与题解弹窗内的入口共用同一个模态框）
+const { show: openSubmit } = useSubmitModal();
 
 const allData = ref([]);
 const filters = reactive({ q: "", year: "", month: "", day: "", tags: [] });
@@ -147,7 +154,26 @@ onMounted(async () => {
     <ProblemTable v-if="!loadError" :problems="filtered" />
     <p v-else class="muted">加载 data.json 失败：{{ loadError }}。请通过 dev server 或 GitHub Pages 访问。</p>
 
+    <!-- 投稿入口：暂时由 COMMUNITY.submitEnabled 关掉（改回 true 即恢复，不是删功能） -->
+    <div v-if="COMMUNITY.submitEnabled" class="site-cta">
+      <button type="button" class="btn ghost" @click="openSubmit()">
+        ✍️ 投稿题解
+      </button>
+    </div>
+
+    <!-- 页面底部的讨论区，跟着「今日题目」走：一进站就能参与今天这题的讨论。
+         每题各自的讨论仍在题解弹窗里（SolutionModal -> CommentSection）。
+         两者用的是同一个 discussion（term 相同），所以今日题会在两处各渲染一次。
+         「全部讨论」外链现在挂在它的标题右侧（all-discussions-link）。 -->
+    <CommentSection
+      :problem="latest"
+      heading="今日题目讨论"
+      show-problem
+      all-discussions-link
+    />
+
     <SolutionModal />
+    <SubmitSolution />
 
     <footer>
       交流 QQ 群号：<code>1036787694</code> · 数据文件 <code>data.json</code> · 部署由 GitHub Actions 自动构建

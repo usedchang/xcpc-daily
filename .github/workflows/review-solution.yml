@@ -1,0 +1,34 @@
+name: 校验社区投稿
+
+# 甲的「审核」由 PR 承载：这个 workflow 只做机械校验（格式/路径/防冒名），
+# 真正的人工审核是维护者点 Approve + Merge。合并后才存在 solutions/community/ 下，
+# 因此「目录里的文件 == 已审核通过」这条不变式成立。
+
+on:
+  pull_request:
+    paths:
+      - "solutions/community/**"
+      - "data.json"
+      - "src/**"
+      - ".github/**"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 校验投稿格式
+        run: |
+          git fetch --depth=1 origin "${{ github.base_ref }}"
+          git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" \
+            | xargs -r node scripts/validate-submission.mjs --author "${{ github.event.pull_request.user.login }}"

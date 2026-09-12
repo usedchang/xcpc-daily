@@ -31,8 +31,8 @@ const { show } = useSolutionModal();
       </span>
     </div>
     <a class="btn" :href="problem.link" target="_blank" rel="noopener">打开题目 ↗</a>
-    <button v-if="hasSolution" type="button" class="btn ghost" @click="show(problem)">
-      查看题解
+    <button type="button" class="btn ghost" @click="show(problem)">
+      {{ hasSolution ? "查看题解" : "讨论 / 投稿" }}
     </button>
   </section>
 </template>
