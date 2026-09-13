@@ -2,6 +2,7 @@
 import { ref, reactive, computed, onMounted } from "vue";
 import { loadProblems } from "./data/problems.js";
 import ThemeToggle from "./components/ThemeToggle.vue";
+import GithubCorner from "./components/GithubCorner.vue";
 import LatestCard from "./components/LatestCard.vue";
 import FilterBar from "./components/FilterBar.vue";
 import ProblemTable from "./components/ProblemTable.vue";
@@ -130,6 +131,7 @@ onMounted(async () => {
 
 <template>
   <div class="wrap">
+    <GithubCorner />
     <header>
       <ThemeToggle />
       <h1>XCPC 每日一题</h1>

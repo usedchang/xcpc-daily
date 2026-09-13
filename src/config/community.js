@@ -13,6 +13,13 @@ export const COMMUNITY = {
   /** 仓库全名，用于生成 GitHub 链接。 */
   repo: "usedchang/xcpc-daily",
   repoUrl: "https://github.com/usedchang/xcpc-daily",
+  /**
+   * 作者 GitHub 主页：页面右上角角标（GithubCorner.vue）的跳转目标。
+   * 想改成跳本仓库，把它换成 repoUrl 的值即可。
+   */
+  profileUrl: "https://github.com/usedchang",
+  /** GitHub 用户名，仅用于角标的无障碍文案（aria-label）。 */
+  owner: "usedchang",
   /** 站点部署所在的分支（GitHub 网页编辑器新建文件时用）。 */
   defaultBranch: "main",
   /** 社区投稿题解的目录（仓库根目录起算，不带首尾斜杠）。 */

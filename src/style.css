@@ -59,7 +59,7 @@ body {
   padding: 32px 20px 64px;
 }
 
-/* ---------- 顶部：标题居中，主题开关固定右上角 ---------- */
+/* ---------- 顶部：标题居中，主题开关在左上角，GitHub 角标在右上角 ---------- */
 header {
   position: relative;
   text-align: center;
@@ -78,7 +78,7 @@ header p {
 .theme-toggle {
   position: absolute;
   top: 0;
-  right: 0;
+  left: 0; /* 右上角让给 GitHub 角标 */
   background: var(--card);
   color: var(--text);
   border: 1px solid var(--border);
@@ -92,6 +92,58 @@ header p {
 .theme-toggle:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+/* ---------- 右上角 GitHub 角标（圆形小猫按钮，边缘羽化融进背景） ----------
+   底座不是实心圆：先用 currentColor 铺满圆形，再套一层径向 mask —— 圆心保留、边缘淡出，
+   于是看不到硬边，小猫像嵌在背景里；图标落在 mask 的完全不透明区，本身不会被虚化。
+   注意 mask 会把 box-shadow / outline 一起裁掉，所以 hover、键盘聚焦只靠颜色与缩放表达。 */
+.gh-corner {
+  /* 底座颜色（小猫以外的晕染底色）：rgba 末位是它自己的透明度 —— 1 就是原来那个实心黑圈，
+     调小就连黑圈一起变透明。别用元素级 opacity 代替：那样浅色主题下白猫会跟米色背景糊成一片。 */
+  --gh-tint: rgba(36, 41, 47, 0.7);
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 60; /* 低于题解弹窗（1000），弹窗打开时能盖住它 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  color: var(--gh-tint);
+  background: currentColor;
+  /* 外层虚化程度：左值 = 从哪个半径开始变虚，右值 = 到哪个半径完全透明，
+     两者之差就是柔边宽度。想更虚：左值调小或右值调大；想更实：反过来。
+     百分比相对的是渐变半径：盒子 52px 时 100% ≈ 36.8px（圆心到角），所以 63% ≈ 23px、
+     72% ≈ 26.5px；而盒子边缘在 70.7%（≈ 26px）—— 右值一旦超过它，就等于"没淡完就被裁断"，
+     边界会留一圈硬边。手机上盒子 44px，百分比等比跟着缩，不用改。 */
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 63%, transparent 72%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 63%, transparent 72%);
+  transition: color 0.25s ease, transform 0.15s ease;
+}
+.gh-corner svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  fill: #fff;
+  /* 小猫默认压到半透明，和底座一起融进背景；hover / 键盘聚焦时回到实心白当反馈。
+     0.7 的差别肉眼几乎看不出来，这里用 0.5；想更淡继续往下调（0.35 已经很像水印了） */
+  opacity: 0.7;
+  transition: opacity 0.25s ease;
+}
+:root.dark .gh-corner {
+  --gh-tint: rgba(48, 54, 61, 0.5);
+}
+.gh-corner:hover,
+.gh-corner:focus-visible {
+  color: var(--accent);
+  transform: scale(1.06);
+}
+.gh-corner:hover svg,
+.gh-corner:focus-visible svg {
+  opacity: 1;
 }
 
 /* ---------- 今日题目卡 ---------- */
@@ -900,6 +952,18 @@ footer a {
   .theme-toggle {
     position: static;
     margin-top: 12px;
+  }
+
+  /* 手机上角标也缩一号（底座边缘是虚的，视觉尺寸比盒子小一圈），别压到标题 */
+  .gh-corner {
+    top: 12px;
+    right: 12px;
+    width: 44px;
+    height: 44px;
+  }
+  .gh-corner svg {
+    width: 17px;
+    height: 17px;
   }
   th:nth-child(1),
   td:nth-child(1) {
