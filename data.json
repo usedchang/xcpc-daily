@@ -57,6 +57,14 @@
   },
   {
     "date": "2026-09-14",
+    "source": "Codeforces Round 146 (Div. 1)",
+    "title": "A. LCM Challenge",
+    "link": "https://codeforces.com/problemset/problem/235/A",
+    "difficulty": "1600",
+    "tags": ["number theory"]
+  },
+  {
+    "date": "2026-09-15",
     "source": "Luogu P4038",
     "title": "P4038 [CERC 1995] John's Trip",
     "link": "https://www.luogu.com.cn/problem/P4038",
@@ -64,7 +72,7 @@
     "tags": ["graphs"]
   },
   {
-    "date": "2026-09-15",
+    "date": "2026-09-16",
     "source": "The 2021 ICPC China Zhejiang Provincial Programming Contest (18th)",
     "title": "Fair Distribution",
     "link": "https://qoj.ac/problem/10892",
