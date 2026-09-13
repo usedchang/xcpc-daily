@@ -66,13 +66,21 @@
   {
     "date": "2026-09-15",
     "source": "Luogu P4038",
+    "title": "A. Everything Nim",
+    "link": "https://codeforces.com/problemset/problem/1965/A",
+    "difficulty": "1400",
+    "tags": ["games"]
+  },
+  {
+    "date": "2026-09-16",
+    "source": "Luogu P4038",
     "title": "P4038 [CERC 1995] John's Trip",
     "link": "https://www.luogu.com.cn/problem/P4038",
     "difficulty": "1700",
     "tags": ["graphs"]
   },
   {
-    "date": "2026-09-16",
+    "date": "2026-09-17",
     "source": "The 2021 ICPC China Zhejiang Provincial Programming Contest (18th)",
     "title": "Fair Distribution",
     "link": "https://qoj.ac/problem/10892",
