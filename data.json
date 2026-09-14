@@ -65,6 +65,18 @@
   },
   {
     "date": "2026-09-15",
+    "source": "2021 ICPC Gran Premio de Mexico 2da Fecha",
+    "title": "K. K-Binary Repetitive Numbers",
+    "link": "https://codeforces.com/gym/103306/problem/K",
+    "difficulty": "1700",
+    "tags": ["count","math"],
+    "hints":[
+      "正向思考很困难，能否对不满足情况计数?",
+      "对于某个串考虑是长度是他的因数的那些串与他有什么关系?"
+    ]
+  },
+  {
+    "date": "2026-09-16",
     "source": "Luogu P4038",
     "title": "A. Everything Nim",
     "link": "https://codeforces.com/problemset/problem/1965/A",
@@ -72,7 +84,7 @@
     "tags": ["games"]
   },
   {
-    "date": "2026-09-16",
+    "date": "2026-09-17",
     "source": "Luogu P4038",
     "title": "P4038 [CERC 1995] John's Trip",
     "link": "https://www.luogu.com.cn/problem/P4038",
@@ -80,7 +92,7 @@
     "tags": ["graphs"]
   },
   {
-    "date": "2026-09-17",
+    "date": "2026-09-18",
     "source": "The 2021 ICPC China Zhejiang Provincial Programming Contest (18th)",
     "title": "Fair Distribution",
     "link": "https://qoj.ac/problem/10892",

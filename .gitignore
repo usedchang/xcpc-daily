@@ -7,3 +7,6 @@ reasonix.toml
 
 # 本地编译/输出产物
 solutions/output/
+
+# CP Editor 本地缓存
+solutions/.cph/
