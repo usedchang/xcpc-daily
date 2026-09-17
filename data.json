@@ -93,6 +93,14 @@
   },
   {
     "date": "2026-09-18",
+    "source": "Codeforces Round 1002 (Div. 2)",
+    "title": "D. Graph and Graph",
+    "link": "https://codeforces.com/problemset/problem/2059/D",
+    "difficulty": "1900",
+    "tags": ["graphs","data structures","greedy","shortest paths"]
+  },
+  {
+    "date": "2026-09-19",
     "source": "Luogu P4038",
     "title": "P4038 [CERC 1995] John's Trip",
     "link": "https://www.luogu.com.cn/problem/P4038",
@@ -100,7 +108,7 @@
     "tags": ["graphs"]
   },
   {
-    "date": "2026-09-19",
+    "date": "2026-09-20",
     "source": "The 2021 ICPC China Zhejiang Provincial Programming Contest (18th)",
     "title": "Fair Distribution",
     "link": "https://qoj.ac/problem/10892",

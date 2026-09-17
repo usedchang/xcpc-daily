@@ -3,9 +3,6 @@ using namespace std;
 #define endl '\n'
 typedef long long ll;
 const ll inf=1e18;
-struct node{
-    int x,y,z;
-};
 void solve(){
     int n;cin>>n;
     vector<ll>a(n+1);
