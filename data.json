@@ -114,5 +114,85 @@
     "link": "https://qoj.ac/problem/10892",
     "difficulty": "省赛中后期",
     "tags": ["sqrt trick"]
+  },
+  {
+    "date": "2026-09-21",
+    "source": "The 4th Universal Cup. Extra Stage 5: Shenzhen",
+    "title": "暴击",
+    "link": "https://qoj.ac/contest/3588/problem/17764/statement/zh_cn",
+    "difficulty": "邀请赛前期",
+    "tags": ["dp"]
+  },
+  {
+    "date": "2026-09-22",
+    "source": "“华为智联杯”无线程序设计大赛暨2025年上海市大学生程序设计竞赛",
+    "title": "神之一手",
+    "link": "https://qoj.ac/contest/2238/problem/12569",
+    "difficulty": "省赛中后期",
+    "tags": ["probabilities"]
+  },
+  {
+    "date": "2026-09-23",
+    "source": "第十九届吉林省大学生程序设计竞赛",
+    "title": "Hidden k-Tuples",
+    "link": "https://qoj.ac/contest/3786/problem/18371/statement/zh_cn",
+    "difficulty": "省赛中后期",
+    "tags": ["interactive"]
+  },
+  {
+    "date": "2026-09-24",
+    "source": "CCPC 2025 河北省赛",
+    "title": "棋盘",
+    "link": "https://qoj.ac/contest/2629/problem/15230",
+    "difficulty": "省赛前中期",
+    "tags": ["games"]
+  },
+  {
+    "date": "2026-09-25",
+    "source": "GDCPC 2023",
+    "title": "Computational Geometry",
+    "link": "https://qoj.ac/contest/1247/problem/6517/statement/zh_cn",
+    "difficulty": "省赛中后期",
+    "tags": ["geometry"]
+  },
+  {
+    "date": "2026-09-26",
+    "source": "FJCPC 2025",
+    "title": "众数",
+    "link": "https://qoj.ac/contest/2182/problem/12376",
+    "difficulty": "省赛中后期",
+    "tags": ["unknown"]
+  },
+  {
+    "date": "2026-09-27",
+    "source": "The 2021 ICPC China Zhejiang Provincial Programming Contest (18th)",
+    "title": "Game Theory",
+    "link": "https://qoj.ac/contest/2014/problem/10899/statement/zh_cn",
+    "difficulty": "省赛前期",
+    "tags": ["games"]
+  },
+  {
+    "date": "2026-09-28",
+    "source": "AtCoder Beginner Contest 355",
+    "title": "MST Query",
+    "link": "https://atcoder.jp/contests/abc355/tasks/abc355_f",
+    "difficulty": "1900",
+    "tags": ["graphs"]
+  },
+  {
+    "date": "2026-09-29",
+    "source": "AtCoder Beginner Contest 359",
+    "title": "Tree Degree Optimization",
+    "link": "https://atcoder.jp/contests/abc359/tasks/abc359_f",
+    "difficulty": "1800",
+    "tags": ["graphs"]
+  },
+  {
+    "date": "2026-09-30",
+    "source": "AtCoder Beginner Contest 361",
+    "title": "x = a^b",
+    "link": "https://atcoder.jp/contests/abc361/tasks/abc361_f",
+    "difficulty": "1600",
+    "tags": ["math"]
   }
 ]
