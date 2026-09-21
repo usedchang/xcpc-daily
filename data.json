@@ -125,11 +125,11 @@
   },
   {
     "date": "2026-09-22",
-    "source": "“华为智联杯”无线程序设计大赛暨2025年上海市大学生程序设计竞赛",
-    "title": "神之一手",
-    "link": "https://qoj.ac/contest/2238/problem/12569",
-    "difficulty": "省赛中后期",
-    "tags": ["probabilities"]
+    "source": "Luogu P4151",
+    "title": "[WC2011] 最大 XOR 和路径",
+    "link": "https://www.luogu.com.cn/problem/P4151",
+    "difficulty": "省选/NOI-",
+    "tags": ["graphs"]
   },
   {
     "date": "2026-09-23",
