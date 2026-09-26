@@ -168,8 +168,8 @@
     "source": "FJCPC 2025",
     "title": "众数",
     "link": "https://qoj.ac/contest/2182/problem/12376",
-    "difficulty": "省赛中后期",
-    "tags": ["unknown"]
+    "difficulty": "邀请赛前中期",
+    "tags": ["greedy"]
   },
   {
     "date": "2026-09-28",
