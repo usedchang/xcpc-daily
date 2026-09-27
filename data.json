@@ -176,16 +176,16 @@
     "source": "JSCPC/GDCPC 2025",
     "title": "Monetary System",
     "link": "https://qoj.ac/contest/2058/problem/11379/statement/zh_cn",
-    "difficulty": "省赛前期",
-    "tags": ["games"]
+    "difficulty": "省赛中期",
+    "tags": ["dp","math"]
   },
   {
     "date": "2026-09-29",
-    "source": "AtCoder Beginner Contest 355",
-    "title": "MST Query",
-    "link": "https://atcoder.jp/contests/abc355/tasks/abc355_f",
+    "source": "Petrozavodsk Summer 2014. Day 5. Xiaoxu Guo (SJTU) Contest 2",
+    "title": "Exclusive Or",
+    "link": "https://qoj.ac/problem/13231",
     "difficulty": "1900",
-    "tags": ["graphs"]
+    "tags": ["bitmasks","math"]
   },
   {
     "date": "2026-09-30",
