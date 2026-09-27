@@ -173,9 +173,9 @@
   },
   {
     "date": "2026-09-28",
-    "source": "The 2021 ICPC China Zhejiang Provincial Programming Contest (18th)",
-    "title": "Game Theory",
-    "link": "https://qoj.ac/contest/2014/problem/10899/statement/zh_cn",
+    "source": "JSCPC/GDCPC 2025",
+    "title": "Monetary System",
+    "link": "https://qoj.ac/contest/2058/problem/11379/statement/zh_cn",
     "difficulty": "省赛前期",
     "tags": ["games"]
   },
