@@ -181,11 +181,11 @@
   },
   {
     "date": "2026-09-29",
-    "source": "Petrozavodsk Summer 2014. Day 5. Xiaoxu Guo (SJTU) Contest 2",
-    "title": "Exclusive Or",
-    "link": "https://qoj.ac/problem/13231",
-    "difficulty": "1900",
-    "tags": ["bitmasks","math"]
+    "source": "GDCPC 2023",
+    "title": "New but Nostalgic Problem",
+    "link": "https://qoj.ac/contest/1247/problem/6516/statement/zh_cn",
+    "difficulty": "省赛中期",
+    "tags": ["strings"]
   },
   {
     "date": "2026-09-30",
