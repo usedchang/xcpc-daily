@@ -189,11 +189,11 @@
   },
   {
     "date": "2026-09-30",
-    "source": "AtCoder Beginner Contest 359",
-    "title": "Tree Degree Optimization",
-    "link": "https://atcoder.jp/contests/abc359/tasks/abc359_f",
-    "difficulty": "1800",
-    "tags": ["graphs","greedy"]
+    "source": "The 2nd Universal Cup. Stage 16: Run Twice",
+    "title": "Bracket-and-bar Sequences",
+    "link": "https://qoj.ac/contest/1465/problem/4824",
+    "difficulty": "1700",
+    "tags": ["run twice"]
   },
   {
     "date": "2026-10-01",
