@@ -193,7 +193,7 @@
     "title": "Tree Degree Optimization",
     "link": "https://atcoder.jp/contests/abc359/tasks/abc359_f",
     "difficulty": "1800",
-    "tags": ["graphs"]
+    "tags": ["graphs","greedy"]
   },
   {
     "date": "2026-10-01",
