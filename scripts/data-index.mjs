@@ -13,6 +13,10 @@
  * 用法：
  *   node scripts/data-index.mjs           # 手动重新生成 data/index.json
  *   vite.config.js 里用 dataIndexPlugin() # dev 中间件 + build 生成 dist/data/index.json
+ *
+ * 说明：这里是 Node 侧，读的是磁盘上的文件，和浏览器里 `import.meta.glob` 的形状无关。
+ * （glob 的 eager 结果在不同构建环境下可能是数组、也可能是 `{default:[...]}` 模块对象，
+ *  这个差异由 src/data/problems.js 的 toItems 兜住。）
  */
 import { readFileSync, writeFileSync, readdirSync, statSync, mkdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";

@@ -33,9 +33,13 @@ function monthFromKey(key) {
   return m ? m[1] : "";
 }
 
-/** 把一份数据规整成题目数组（容忍数组 / {problems:[...]} 两种形状）。 */
+/** 把一份数据规整成题目数组（容忍数组 / {problems:[...]} / 模块命名空间 三种形状）。 */
 function toItems(data, label) {
   if (Array.isArray(data)) return data;
+  // ESM 模块命名空间：`import.meta.glob` 的 eager 结果在不同构建环境下，
+  // 有的是真数组，有的是 `{default: [...], __esModule: true}` 这样的模块对象。
+  // 不拆这一层，线上会静默丢掉全部月份数据（本地却可能恰好是数组，极难复现）。
+  if (data && !Array.isArray(data) && Array.isArray(data.default)) return data.default;
   if (data && Array.isArray(data.problems)) return data.problems;
   console.warn(`[data] ${label} 顶层不是数组，已忽略`);
   return [];
