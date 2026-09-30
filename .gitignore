@@ -14,8 +14,8 @@ data/index.json
 # 本地排查用的临时脚本（dsh-*.mjs），不要提交
 dsh-*.mjs
 
-# 本地编译/输出产物
-solutions/output/
+# 本地编译/输出产物（题解按月分目录，产物落在 solutions/<年-月>/output/）
+solutions/**/output/
 
 # CP Editor 本地缓存
-solutions/.cph/
+solutions/**/.cph/
