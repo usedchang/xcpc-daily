@@ -275,6 +275,32 @@ export function dataIndexPlugin() {
     }
   }
 
+  /**
+   * 给产物里的入口 JS/CSS 加上 `?v=<文件名>`。
+   *
+   * 为什么需要：GitHub Pages 给 index.html 的响应头是 `Cache-Control: max-age=600`，
+   * 浏览器在 10 分钟内可能连请求都不发，于是"新 HTML + 旧 JS"或"旧 HTML + 已删除的旧 JS"
+   * 都会发生——症状是页面框架在、但数据为 0（旧 JS 只会去 fetch 早就删掉的 data.json）。
+   * 带上版本号后，HTML 一刷新就必然指向当次构建的产物，不会再用到浏览器里缓存的旧 JS。
+   */
+  function stampEntryAssets() {
+    const indexPath = resolve(PROJECT_ROOT, outDir, "index.html");
+    try {
+      let html = readFileSync(indexPath, "utf8");
+      const before = html;
+      html = html.replace(
+        /(src|href)="\.\/(assets\/[^"]+\.(?:js|css))"/g,
+        (_m, attr, file) => `${attr}="./${file}?v=${file.split("/").pop()}"`
+      );
+      if (html !== before) {
+        writeFileSync(indexPath, html, "utf8");
+        console.log(`[data] 已给 ${outDir}/index.html 的入口资源加上版本号`);
+      }
+    } catch (err) {
+      console.warn(`[data] 处理 ${outDir}/index.html 失败：${err.message}`);
+    }
+  }
+
   return {
     name: "xcpc-daily:data-index",
 
@@ -291,7 +317,10 @@ export function dataIndexPlugin() {
 
     closeBundle() {
       // closeBundle 在 rollup 全部产物写盘之后触发，此时 dist/ 已经存在
-      if (building) writeDeployedIndexes();
+      if (building) {
+        writeDeployedIndexes();
+        stampEntryAssets();
+      }
     },
 
     configureServer(server) {
