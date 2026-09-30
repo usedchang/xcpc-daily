@@ -66,11 +66,6 @@ export function communityEntriesFor(date) {
   return byDate.get(String(date || "").trim()) || [];
 }
 
-/** 某题有没有社区题解（同步）。 */
-export function hasCommunitySolutions(problem) {
-  return communityEntriesFor(problem?.date).length > 0;
-}
-
 const contentCache = new Map();
 
 /**

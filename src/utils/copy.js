@@ -1,8 +1,8 @@
 /**
  * 复制到剪贴板的共享实现。
  *
- * 说明：SolutionPanel.vue 里原本内联了一份等价实现，这里抽出来给社区题解复用。
- * SolutionPanel 暂未改动（避免为社区功能引入回归），后续可一并切换到这个模块。
+ * 官方题解（SolutionPanel）、社区题解（CommunitySolutions）、分享按钮（ShareDaily）
+ * 各自需要不同粒度的入口，但底层只有这一份实现。
  */
 
 function fallbackCopy(text, done) {
@@ -14,11 +14,11 @@ function fallbackCopy(text, done) {
     ta.style.opacity = "0";
     document.body.appendChild(ta);
     ta.select();
-    document.execCommand("copy");
+    const ok = document.execCommand("copy");
     ta.remove();
-    done();
+    done(Boolean(ok));
   } catch (e) {
-    done();
+    done(false);
   }
 }
 
@@ -37,7 +37,7 @@ export async function copyText(text) {
       // 继续走 execCommand 兜底
     }
   }
-  return new Promise((resolve) => fallbackCopy(value, () => resolve(true)));
+  return new Promise((resolve) => fallbackCopy(value, resolve));
 }
 
 /** 复制按钮所在的 <pre> 里的代码，并给按钮 1.2s 的 "copied" 反馈。 */
@@ -46,17 +46,18 @@ export function copyFromButton(btn) {
   if (!pre) return;
   const text = pre.querySelector("code")?.innerText ?? "";
 
-  const done = () => {
-    btn.textContent = "copied";
-    btn.classList.add("copied");
+  const done = (ok) => {
+    btn.textContent = ok ? "copied" : "failed";
+    btn.classList.toggle("copied", ok);
+    if (!ok) btn.classList.add("copy-failed");
     window.setTimeout(() => {
       btn.textContent = "copy";
-      btn.classList.remove("copied");
+      btn.classList.remove("copied", "copy-failed");
     }, 1200);
   };
 
   if (navigator.clipboard?.writeText) {
-    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    navigator.clipboard.writeText(text).then(() => done(true)).catch(() => fallbackCopy(text, done));
   } else {
     fallbackCopy(text, done);
   }

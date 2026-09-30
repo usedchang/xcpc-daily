@@ -14,11 +14,16 @@
  *   node scripts/data-index.mjs           # 手动重新生成 data/index.json
  *   vite.config.js 里用 dataIndexPlugin() # dev 中间件 + build 生成 dist/data/index.json
  *
+ * 顺带承担的构建收尾工作（都在 closeBundle，见 dataIndexPlugin 内注释）：
+ * 把 data/<年-月>.json 与 solutions/<年-月>/*.md 拷进产物目录、
+ * 给产物 index.html 的入口资源打上内容版本号。
+ *
  * 说明：这里是 Node 侧，读的是磁盘上的文件，和浏览器里 `import.meta.glob` 的形状无关。
  * （glob 的 eager 结果在不同构建环境下可能是数组、也可能是 `{default:[...]}` 模块对象，
  *  这个差异由 src/data/problems.js 的 toItems 兜住。）
  */
 import { readFileSync, writeFileSync, readdirSync, statSync, mkdirSync, copyFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -159,12 +164,13 @@ export function buildIndexText(dataDir) {
 const SOLUTION_MONTH_DIR_RE = /^(\d{4}-\d{2})$/;
 
 /**
- * 扫描 `solutions/<年-月>/*.md`，列出真实存在的题解。
+ * 扫描 `solutions/<年-月>/*.md`，用于 dev 下打印「有哪些题解」。
  *
- * 存在的意义：页面在找不到内联题解时会去 fetch 部署目录里的 md。但 dev server（以及
- * 部分静态托管）对不存在的路径会**回退返回 index.html 且状态码是 200**，
- * 于是「fetch 成功」拿到一整页 HTML，被当成题解渲染出来。有了这份清单，
- * 运行时只 fetch 清单里确实存在的文件，从根上避开 SPA 回退。
+ * 题解本身由 src/data/solutions.js 在构建时 import.meta.glob 内联，**不需要清单**：
+ * 页面找不到内联内容时会直接 fetch 部署目录里的 md，并靠响应体嗅探
+ * （looksLikeHtmlPage）挡掉 SPA 回退返回的 index.html。
+ * 早先那份 solutions/index.json 清单是多余的，而且它还有个副作用：
+ * 后来才丢进部署目录的 md 不在清单里，就永远读不到。
  *
  * @returns {Record<string, string[]>} 月份 -> 题解文件名（不含 .md）
  */
@@ -190,30 +196,26 @@ export function scanSolutionDir(solutionsDir = join(PROJECT_ROOT, "solutions")) 
   return byMonth;
 }
 
-/** 生成题解清单 solutions/index.json 的文本。 */
-export function buildSolutionIndexText(solutionsDir) {
-  const byMonth = scanSolutionDir(solutionsDir);
-  const count = Object.values(byMonth).reduce((n, list) => n + list.length, 0);
-  const payload = {
-    generated: true,
-    note: "由 scripts/data-index.mjs 自动生成，请勿手动编辑，也不要提交到 git。",
-    count,
-    months: byMonth,
-  };
-  return JSON.stringify(payload, null, 2) + "\n";
+/** dev 下的题解概览日志。 */
+function formatSolutionSummary(solutionsDir) {
+  return (
+    Object.entries(scanSolutionDir(solutionsDir))
+      .map(([m, list]) => `${m}:${list.length}`)
+      .join(" ") || "（空）"
+  );
 }
 
 /**
  * Vite 插件：
- *   - dev：启动时校验月文件、生成 data/index.json 与 solutions/index.json，
- *     之后监听 data/*.json、solutions/<月>/*.md 的改动重新生成；
- *   - build：buildStart 时重新扫描校验，closeBundle 时把两份清单写进部署目录。
+ *   - dev：启动时校验月文件、生成 data/index.json，之后监听 data/*.json 重新生成，
+ *     并在 solutions/<月>/*.md 变动时打印题解概览；
+ *   - build：buildStart 时重新扫描校验，closeBundle 时把月份清单、月文件、
+ *     题解 md 写进部署目录，并给入口资源打上内容版本号。
  */
 export function dataIndexPlugin() {
   const dataDir = join(PROJECT_ROOT, "data");
   const solutionsDir = join(PROJECT_ROOT, "solutions");
   const indexPath = join(dataDir, "index.json");
-  const solutionIndexPath = join(solutionsDir, "index.json");
 
   let outDir = "dist";
   let building = false;
@@ -245,37 +247,24 @@ export function dataIndexPlugin() {
     return { changed, text };
   }
 
-  function writeSolutionIndex(log = false) {
-    const text = buildSolutionIndexText(solutionsDir);
-    const changed = writeIfChanged(solutionIndexPath, text);
-    if (log) {
-      const byMonth = Object.entries(scanSolutionDir(solutionsDir))
-        .map(([m, list]) => `${m}:${list.length}`)
-        .join(" ");
-      console.log(`[solutions] 题解清单 ${byMonth || "（空）"}${changed ? "，已更新 solutions/index.json" : ""}`);
-    }
-    return { changed, text };
+  function logSolutions() {
+    console.log(`[solutions] 题解 ${formatSolutionSummary(solutionsDir)}`);
   }
 
   /**
-   * 把两份清单写进部署目录。运行时 fetch 的是 `./data/index.json` 与 `./solutions/index.json`，
-   * 产物里必须各有一份，否则「改完文件直接丢到部署目录」的回退会失效。
+   * 把月份清单写进部署目录。运行时 fetch 的是 `./data/index.json`，
+   * 产物里必须有一份，否则「改完 json 直接丢到部署目录」的回退会失效。
    * 手写文件而不是 emitFile：dist 是普通静态目录，不需要参与 rollup 的 hash 命名。
    */
-  function writeDeployedIndexes() {
-    const jobs = [
-      { sub: "data", text: writeIndex(false).text },
-      { sub: "solutions", text: writeSolutionIndex(false).text },
-    ];
-    for (const { sub, text } of jobs) {
-      try {
-        const target = resolve(PROJECT_ROOT, outDir, sub);
-        mkdirSync(target, { recursive: true });
-        writeFileSync(join(target, "index.json"), text, "utf8");
-        console.log(`[data] 已写入 ${outDir}/${sub}/index.json`);
-      } catch (err) {
-        console.warn(`[data] 写入 ${outDir}/${sub}/index.json 失败：${err.message}`);
-      }
+  function writeDeployedIndex() {
+    try {
+      const text = writeIndex(false).text;
+      const target = resolve(PROJECT_ROOT, outDir, "data");
+      mkdirSync(target, { recursive: true });
+      writeFileSync(join(target, "index.json"), text, "utf8");
+      console.log(`[data] 已写入 ${outDir}/data/index.json`);
+    } catch (err) {
+      console.warn(`[data] 写入 ${outDir}/data/index.json 失败：${err.message}`);
     }
   }
 
@@ -303,25 +292,74 @@ export function dataIndexPlugin() {
   }
 
   /**
-   * 给产物里的入口 JS/CSS 加上 `?v=<文件名>`。
+   * 把 `solutions/<年-月>/*.md` 一起拷进部署目录。
+   *
+   * 少这一步，src/data/solutions.js 的运行时通道就整条是死的：
+   * 那行 `fetch("./solutions/<月>/<name>.md")` 在线上永远 404，
+   * 于是「改完题解 md 直接覆盖部署目录」只在 README 里成立。
+   * 标程 .cpp 页面不读，就不必跟着进产物。
+   */
+  function copySolutionFiles() {
+    const src = solutionsDir;
+    const target = resolve(PROJECT_ROOT, outDir, "solutions");
+    let copied = 0;
+    try {
+      for (const entry of readdirSync(src, { withFileTypes: true })) {
+        if (!entry.isDirectory() || !SOLUTION_MONTH_DIR_RE.test(entry.name)) continue;
+        const from = join(src, entry.name);
+        const to = join(target, entry.name);
+        const names = readdirSync(from).filter(
+          (n) => /\.md$/i.test(n) && !n.startsWith("_") && n.toLowerCase() !== "readme.md"
+        );
+        if (!names.length) continue;
+        mkdirSync(to, { recursive: true });
+        for (const name of names) {
+          copyFileSync(join(from, name), join(to, name));
+          copied += 1;
+        }
+      }
+      console.log(`[data] 已拷入 ${outDir}/solutions/ 共 ${copied} 篇题解 md`);
+    } catch (err) {
+      console.warn(`[data] 拷贝题解文件失败：${err.message}`);
+    }
+  }
+
+  /**
+   * 给产物里的入口 JS/CSS 打上「入口产物内容」的版本号（`?v=<hash>`）。
    *
    * 为什么需要：GitHub Pages 给 index.html 的响应头是 `Cache-Control: max-age=600`，
-   * 浏览器在 10 分钟内可能连请求都不发，于是"新 HTML + 旧 JS"或"旧 HTML + 已删除的旧 JS"
-   * 都会发生——症状是页面框架在、但数据为 0（旧 JS 只会去 fetch 早就删掉的 data.json）。
-   * 带上版本号后，HTML 一刷新就必然指向当次构建的产物，不会再用到浏览器里缓存的旧 JS。
+   * 浏览器在 10 分钟内可能连请求都不发。入口文件名是固定的，
+   * 若版本号也固定（早先写的是文件名 `index.js`，等于常量），
+   * 浏览器就会一直用自己缓存里的那份旧 JS —— 注释承诺的
+   * 「HTML 一刷新就必然指向当次构建的产物」根本没发生。
+   * 改成内容哈希后，只要产物变了 URL 就变，缓存不可能再顶掉新版本。
    */
   function stampEntryAssets() {
-    const indexPath = resolve(PROJECT_ROOT, outDir, "index.html");
+    const htmlPath = resolve(PROJECT_ROOT, outDir, "index.html");
+    const assetDir = resolve(PROJECT_ROOT, outDir, "assets");
     try {
-      let html = readFileSync(indexPath, "utf8");
-      const before = html;
-      html = html.replace(
-        /(src|href)="\.\/(assets\/[^"]+\.(?:js|css))"/g,
-        (_m, attr, file) => `${attr}="./${file}?v=${file.split("/").pop()}"`
+      const hash = createHash("sha256");
+      let hashed = 0;
+      for (const name of ["index.js", "index.css"]) {
+        try {
+          hash.update(readFileSync(join(assetDir, name)));
+          hashed += 1;
+        } catch {
+          // 某一类产物不存在（例如没有 CSS）时跳过，用剩下的算
+        }
+      }
+      if (!hashed) return;
+      const version = hash.digest("hex").slice(0, 10);
+
+      const html = readFileSync(htmlPath, "utf8");
+      // 允许重复执行：已经带过 ?v= 的资源会被重新写成本次的版本号
+      const stamped = html.replace(
+        /(src|href)="\.\/(assets\/[^"?]+\.(?:js|css))(?:\?[^"]*)?"/g,
+        (_m, attr, file) => `${attr}="./${file}?v=${version}"`
       );
-      if (html !== before) {
-        writeFileSync(indexPath, html, "utf8");
-        console.log(`[data] 已给 ${outDir}/index.html 的入口资源加上版本号`);
+      if (stamped !== html) {
+        writeFileSync(htmlPath, stamped, "utf8");
+        console.log(`[data] 已给 ${outDir}/index.html 的入口资源打上版本号 ?v=${version}`);
       }
     } catch (err) {
       console.warn(`[data] 处理 ${outDir}/index.html 失败：${err.message}`);
@@ -339,21 +377,22 @@ export function dataIndexPlugin() {
     buildStart() {
       // 提前校验一遍：月份文件名与条目日期不匹配这类错误在构建一开始就报出来
       writeIndex(true);
-      writeSolutionIndex(true);
+      logSolutions();
     },
 
     closeBundle() {
       // closeBundle 在 rollup 全部产物写盘之后触发，此时 dist/ 已经存在
       if (building) {
-        writeDeployedIndexes();
+        writeDeployedIndex();
         copyMonthFiles();
+        copySolutionFiles();
         stampEntryAssets();
       }
     },
 
     configureServer(server) {
       writeIndex(true);
-      writeSolutionIndex(true);
+      logSolutions();
       server.watcher.add(dataDir);
       server.watcher.add(solutionsDir);
 
@@ -363,8 +402,9 @@ export function dataIndexPlugin() {
           if (/[/\\]data[/\\][^/\\]*\.json$/.test(p) && !/[/\\]index\.json$/.test(p)) {
             writeIndex(true);
           } else if (/[/\\]solutions[/\\][^/\\]+[/\\][^/\\]+\.md$/i.test(p)) {
-            // solutions/<年-月>/xxx.md 新增/改动/删除都要刷清单
-            writeSolutionIndex(true);
+            // solutions/<年-月>/xxx.md 新增/改动/删除：题解是 import.meta.glob 内联的，
+            // Vite 自己会热更新；这里只把概览打出来，方便确认文件真的被认到了
+            logSolutions();
           }
         } catch (err) {
           // 写错了就在终端报出来，别让 dev server 挂掉
@@ -386,11 +426,6 @@ function writeIndexFromCli() {
   console.log(
     `[data] 已生成 data/index.json：${info.months.length} 个月文件 / ${info.count} 题`
   );
-
-  const solText = buildSolutionIndexText(join(PROJECT_ROOT, "solutions"));
-  writeFileSync(join(PROJECT_ROOT, "solutions", "index.json"), solText, "utf8");
-  const solInfo = JSON.parse(solText);
-  console.log(`[data] 已生成 solutions/index.json：${solInfo.count} 篇题解`);
 }
 
 export { writeIndexFromCli };

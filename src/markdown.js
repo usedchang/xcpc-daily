@@ -7,7 +7,10 @@ import java from "highlight.js/lib/languages/java";
 import javascript from "highlight.js/lib/languages/javascript";
 import bash from "highlight.js/lib/languages/bash";
 import plaintext from "highlight.js/lib/languages/plaintext";
-import "highlight.js/styles/github.css";
+// 不引 highlight.js 自带的主题（原本是 styles/github.css）：那套配色只适配亮色，
+// 而且它随 markdown chunk 变成独立的异步 CSS，注入时机晚于 style.css，
+// 同权重下会把暗色主题的代码配色顶掉（.hljs-meta .hljs-keyword 就压过了我们的覆盖）。
+// 配色改成在 style.css 里用主题变量自己写全，见「代码高亮」一节。
 
 import { mathjax } from "mathjax-full/js/mathjax.js";
 import { TeX } from "mathjax-full/js/input/tex.js";

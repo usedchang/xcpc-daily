@@ -63,7 +63,7 @@ export function isGiscusReady() {
  * giscus 的讨论帖标识：一道题一个帖子。
  * 站点是 hash 路由（#/?year=...），题目没有独立 pathname，
  * 所以不能用 mapping="pathname"，必须用 mapping="specific" + 稳定的 term。
- * 用 date 作 key，与 data.json 一一对应。
+ * 用 date 作 key，与 data/<年-月>.json 里的题目一一对应。
  */
 export function discussionTerm(problem) {
   return `problem-${String(problem?.date || "").trim()}`;

@@ -2,6 +2,7 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { COMMUNITY, newSubmissionUrl } from "../config/community.js";
 import { useSubmitModal } from "../composables/useSubmitModal.js";
+import { copyText } from "../utils/copy.js";
 
 const { problem, open, close } = useSubmitModal();
 
@@ -35,12 +36,7 @@ const ready = computed(() => Boolean(fileName.value && body.value.trim()));
 const targetUrl = computed(() => newSubmissionUrl(fileName.value));
 
 async function copyContent() {
-  try {
-    await navigator.clipboard.writeText(content.value);
-    copyState.value = "已复制";
-  } catch (e) {
-    copyState.value = "复制失败，请手动全选";
-  }
+  copyState.value = (await copyText(content.value)) ? "已复制" : "复制失败，请手动全选";
   window.setTimeout(() => {
     copyState.value = "";
   }, 1800);

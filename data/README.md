@@ -6,7 +6,6 @@
 data/2026-09.json     2026 年 9 月的全部题目
 data/2026-10.json     2026 年 10 月
 data/index.json       自动生成的月份清单（不入库，勿手改）
-solutions/index.json  自动生成的题解清单，同属这一套清单（勿手改）
 ```
 
 ## 文件格式
@@ -42,11 +41,15 @@ solutions/index.json  自动生成的题解清单，同属这一套清单（勿�
 ## index.json
 
 `data/index.json` 是 `scripts/data-index.mjs` 生成的月份清单，页面靠它在运行时找到可 fetch 的月文件。
-同一个脚本还会生成 `solutions/index.json`（列出真实存在的题解 md），避免页面去 fetch 不存在的文件
-——dev server 对缺失路径会返回 `index.html`，那会被当成题解渲染。
-
-两份清单都已被 `.gitignore` 忽略，**不要手动编辑、也不要提交**；需要单独刷新时跑：
+它已被 `.gitignore` 忽略，**不要手动编辑、也不要提交**；需要单独刷新时跑：
 
 ```powershell
 npm run data:index
 ```
+
+构建时同一个脚本还会把月文件拷进产物目录（`dist/data/`），并给 `dist/index.html` 的入口资源
+打上内容版本号，所以「改完 json 直接覆盖部署目录里的文件」也能立刻生效，不必重新构建。
+
+> 题解 md 没有对应的清单：`solutions/index.json` 曾经存在，但它挡不住任何真实问题
+> （SPA 回退返回 index.html 的情况由响应体嗅探处理），反而让「后来才丢进部署目录的 md」
+> 永远读不到，因此已删除。

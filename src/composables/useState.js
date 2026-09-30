@@ -47,9 +47,12 @@ export function useUrlState(state) {
       location.hash.includes("?") ? location.hash.split("?")[1] : ""
     );
     state.q = sp.get("q") || "";
-    state.year = sp.get("year") || "";
-    state.month = sp.get("month") ? String(sp.get("month")).padStart(2, "0") : "";
-    state.day = sp.get("day") ? String(sp.get("day")).padStart(2, "0") : "";
+    const year = sp.get("year") || "";
+    const month = Number(sp.get("month"));
+    const day = Number(sp.get("day"));
+    state.year = /^\d{4}$/.test(year) ? year : "";
+    state.month = month >= 1 && month <= 12 ? String(month).padStart(2, "0") : "";
+    state.day = day >= 1 && day <= 31 ? String(day).padStart(2, "0") : "";
     state.tags = (sp.get("tags") || "").split(",").map((t) => t.trim()).filter(Boolean);
   }
 

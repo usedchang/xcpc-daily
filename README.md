@@ -25,15 +25,14 @@ solutions/               题解 markdown + 标程 cpp，同样按月一个目录
     2026-09-08.md            与题目 date 同名的题解
     2026-09-08.cpp           同名标程（可选，只作留档，页面不读取）
   community/               社区投稿（约定不变）
-public/                  直接拷贝进产物的静态资源（如图片）
+public/                  直接拷贝进产物的静态资源（如图片、favicon）
 src/                     页面源码（Vue 3）
 scripts/                 构建辅助脚本
 ```
 
-`data/index.json` 由 `scripts/data-index.mjs` 在 dev / build 时自动生成并写入产物目录，
-页面运行时靠它找到「有哪些月文件可以 fetch」。同一脚本还会生成 `solutions/index.json`
-（哪些题解 md 真实存在）。两份清单都已被 `.gitignore` 忽略，
-**不要手动编辑，也不要提交**；想单独刷新可以跑：
+`data/index.json` 由 `scripts/data-index.mjs` 在 dev / build 时自动生成：dev 下写在
+`data/` 里，build 时同时写一份进产物目录。页面运行时靠它找到「有哪些月文件可以 fetch」。
+它已被 `.gitignore` 忽略，**不要手动编辑，也不要提交**；想单独刷新可以跑：
 
 ```powershell
 npm run data:index
@@ -42,8 +41,8 @@ npm run data:index
 > 这个脚本同时会校验数据：必填字段、`YYYY-MM-DD` 格式、日期是否放错了月份文件、
 > 同一个 date 是否重复。写错了 dev server 一启动（或 `npm run build` 一开始）就会报错。
 >
-> 题解清单的作用：dev server 对**不存在**的路径会回退返回 `index.html`（状态码还是 200）。
-> 有了清单，页面只 fetch 确实存在的 md，就不会把整页 HTML 当成题解渲染出来。
+> 构建收尾也在这个脚本里（`closeBundle`）：把 `data/<年-月>.json` 与
+> `solutions/<年-月>/*.md` 拷进产物目录，并给产物 `index.html` 的入口资源打上内容版本号。
 
 ## 每天发题
 
@@ -95,7 +94,8 @@ npm run data:index
 
 ### Hint（提示）
 
-一个题可以有多个 hint，写在 `data.json` 里，与正文独立，**默认折叠，点击 `Hint N` 标题才展开**（类似 codeforces 的 Hint）：
+一个题可以有多个 hint，写在**对应月份**的数据文件里（`data/<年-月>.json`），与正文独立，
+**默认折叠，点击 `Hint N` 标题才展开**（类似 codeforces 的 Hint）：
 
 ```json
 {
@@ -118,17 +118,38 @@ npm run data:index
 2. 如需 hint，在 `data/<年-月>.json` 对应题目里加 `hints` 数组。
 3. commit + push，自动构建部署。
 
-> 说明：`npm run dev` 或 `npm run build` 会把 `solutions/<年-月>/*.md` 内联打包。页面仍保留 fetch 回退，因此对**已打包**的题解文件，改内容重新部署构建产物即可覆盖显示（无需发新版）；但**新增**题解文件（或新日期）需要重新 `npm run build` 才会被识别。想不重建就让新文件生效，可在对应月份 json 里显式加 `"solution": "文件名"` 或 `hints`，这样按钮一定会出现并能读取到文件。
+> 说明：`npm run dev` 或 `npm run build` 会把 `solutions/<年-月>/*.md` 内联打包，
+> **同时**把同一批 md 拷进产物目录（`dist/solutions/<年-月>/`）。
+> 页面读取时**先 fetch**（`cache: "no-store"`），拿不到才用内联的那份：
+> 所以「改完 md 直接覆盖部署目录里的同名文件」立刻生效，不必重新构建；
+> 新加的题解文件重建一次即可（`import.meta.glob` 是构建期扫描的）。
 >
-> 题目数据（`data/<年-月>.json`）与旧版 `data.json` 一样是**运行时 fetch** 的，
-> 改完直接覆盖部署目录里的月文件即可生效，不必重新构建。
+> 题目数据（`data/<年-月>.json`）同理：产物里带着月文件，改完直接覆盖部署目录里的 json 就生效。
+>
+> 兜底也齐全：md 不存在、离线、或托管方对未知路径回退返回 `index.html`（状态码还是 200）时，
+> 页面靠响应体嗅探认出「这是整页 HTML 而不是题解」，转而使用内联的那份。
+
+## 性能上的两点约定
+
+- **markdown 渲染链按需加载**：MathJax（含全部 TeX 宏包）+ markdown-it + highlight.js + DOMPurify
+  压缩后约 2 MB，只在打开题解弹窗时才会下载（`src/markdown-lazy.js` 里动态 import）。
+  入口 JS 因此只有 ~150 KB（gzip ~56 KB）。
+- **JS/CSS 文件名固定**：入口是 `assets/index.js` / `assets/index.css`，懒加载分块在
+  `assets/chunks/` 下同样不带内容哈希。原因见 `vite.config.js` 的注释（GitHub Pages CDN
+  多节点滞后会导致「HTML 引用的文件不存在」→ 白屏）。缓存更新靠 `dist/index.html` 里
+  入口资源的 `?v=<内容哈希>`。
 
 ## 页面功能
 
 - 搜索框：按题目名/来源即时筛选
 - 日期、标签下拉筛选
-- 护眼/暗色主题（右上角切换）
+- 护眼/暗色主题（左上角切换，选择记在 localStorage；首屏由 `index.html` 里的内联脚本
+  提前定好主题，暗色用户不会看到一闪的白底）
 - 筛选状态同步到 URL，可分享：`#/?year=2026&q=atcoder`
+- 题表：日期 / 来源（下方标注站点名，如 `qoj.ac`）/ 题目（标题即外链，下方是难度与标签）/ 题解按钮。
+  每题都能点开弹窗，没有官方题解时那一栏是「讨论 / 投稿」入口
+- 「今日题目」卡片：标题栏写 `TODAY · 今日题目`；若今天还没发题，会写成
+  `最近一题 · <日期>`，不会把昨天的题冒充成今天的
 - 右下角悬浮的 **share** 按钮：一键复制最近两天（北京时间今天 + 昨天）的题目链接，
   形如：
 

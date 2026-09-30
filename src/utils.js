@@ -1,13 +1,9 @@
-/** HTML 转义，所有插到 v-html 的内容必须经过它处理。 */
-export function esc(s) {
-  return String(s ?? "").replace(/[&<>"']/g, (c) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;",
-  }[c]));
-}
+/**
+ * 题目列表用到的小工具。
+ *
+ * 这里曾经有个 `esc()`（HTML 转义）给 v-html 拼字符串用：难度/标签徽章原本是拼成
+ * HTML 再塞进 v-html 的，现在改成普通模板渲染，转义交给 Vue，函数随之删掉。
+ */
 
 /** 题目的发布日（`YYYY-MM-DD`）；拿不到时返回空串。 */
 export function problemDate(problem) {
@@ -18,6 +14,20 @@ export function problemDate(problem) {
 /** `2026-09-30` -> `20260930`（分享文本里的日期写法）。 */
 export function compactDate(dateStr) {
   return String(dateStr || "").replace(/-/g, "");
+}
+
+/**
+ * 取题目链接的站点名（`qoj.ac` / `codeforces.com` / `www.luogu.com.cn`）。
+ *
+ * 列表里不再单独占一列打印完整 URL（它和题名指向同一个地址，纯属重复），
+ * 改成在来源下方标一个站点名：一眼能看出这题在哪个 OJ，又不占宽度。
+ */
+export function linkHost(link) {
+  try {
+    return new URL(String(link)).host.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
 }
 
 /**

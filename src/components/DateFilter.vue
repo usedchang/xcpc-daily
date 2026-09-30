@@ -18,7 +18,9 @@ const years = computed(() =>
 );
 
 // 当前选中年份（默认取最新一年）
-const activeYear = computed(() => props.year || years.value[0] || "");
+const activeYear = computed(() =>
+  props.year && years.value.includes(props.year) ? props.year : years.value[0] || ""
+);
 
 // 该年份下出现过的月份（升序）
 const months = computed(() =>

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { communityEntriesFor, loadCommunitySolution } from "../data/community.js";
-import { renderUserMarkdown } from "../markdown.js";
+import { renderUserMarkdownAsync } from "../markdown-lazy.js";
 import { onCopyClick } from "../utils/copy.js";
 import { useSubmitModal } from "../composables/useSubmitModal.js";
 import { COMMUNITY } from "../config/community.js";
@@ -27,23 +27,34 @@ function onClick(e) {
 onMounted(() => document.addEventListener("click", onClick));
 onBeforeUnmount(() => document.removeEventListener("click", onClick));
 
+// 连续切换题目时丢弃过期结果（与 SolutionPanel 同理）
+let token = 0;
+
 async function load() {
   const list = entries.value;
+  const mine = ++token;
+
   if (!list.length) {
     items.value = [];
+    loading.value = false;
     return;
   }
+
   loading.value = true;
   try {
     const loaded = await Promise.all(list.map((e) => loadCommunitySolution(e)));
-    items.value = loaded
-      .filter(Boolean)
-      .map((it) => ({ ...it, html: renderUserMarkdown(it.body) }));
+    // sanitize 与渲染都在 markdown chunk 里，等它加载完再一起处理
+    const rendered = await Promise.all(
+      loaded.filter(Boolean).map(async (it) => ({ ...it, html: await renderUserMarkdownAsync(it.body) }))
+    );
+    if (mine !== token) return;
+    items.value = rendered;
   } catch (err) {
+    if (mine !== token) return;
     console.warn("加载社区题解失败", err);
     items.value = [];
   } finally {
-    loading.value = false;
+    if (mine === token) loading.value = false;
   }
 }
 

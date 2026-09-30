@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from "vue";
 import { loadProblems } from "./data/problems.js";
 import ThemeToggle from "./components/ThemeToggle.vue";
 import GithubCorner from "./components/GithubCorner.vue";
@@ -12,14 +12,19 @@ import CommentSection from "./components/CommentSection.vue";
 import ShareDaily from "./components/ShareDaily.vue";
 import { useUrlState } from "./composables/useState.js";
 import { useSubmitModal } from "./composables/useSubmitModal.js";
+import { useSolutionModal } from "./composables/useSolutionModal.js";
 import { COMMUNITY } from "./config/community.js";
 
 // 页面顶部的全局投稿入口（与题解弹窗内的入口共用同一个模态框）
 const { show: openSubmit } = useSubmitModal();
+// 题解弹窗当前展示的题目：用来避免「今日题」的评论区被同时挂两份
+const { problem: modalProblem } = useSolutionModal();
 
 const allData = ref([]);
 const filters = reactive({ q: "", year: "", month: "", day: "", tags: [] });
 const loadError = ref("");
+const loading = ref(true);
+let todayTimer = 0;
 
 const parseDate = (dateStr) => {
   const [y, m, d] = String(dateStr || "").split("-");
@@ -42,16 +47,29 @@ function todayInBeijing() {
   return `${get("year")}-${get("month")}-${get("day")}`;
 }
 
-const todayStr = todayInBeijing();
+const todayStr = ref(todayInBeijing());
+
+// 页面可能被挂一整晚（这站每天更新一次）：跨过北京时间零点后要自己醒过来，
+// 否则「今日题目」会一直停在昨天。切回标签页时补一次检查，另外每 5 分钟兜一次底。
+function refreshToday() {
+  const now = todayInBeijing();
+  if (now !== todayStr.value) todayStr.value = now;
+}
 
 // 已发布的题目：date <= 今天（北京时间），倒序
 const publishedData = computed(() =>
   [...allData.value]
-    .filter((it) => String(it.date || "") <= todayStr)
+    .filter((it) => String(it.date || "") <= todayStr.value)
     .sort((a, b) => String(b.date).localeCompare(String(a.date)))
 );
 
 const latest = computed(() => publishedData.value[0] || null);
+
+// 底部「今日题目讨论」跟着最近一题走。若弹窗里打开的正是同一道题，
+// 就让弹窗那份独占：否则同一个 giscus term 会在页面上同时挂两个 iframe。
+const bottomProblem = computed(() =>
+  modalProblem.value && modalProblem.value.date === latest.value?.date ? null : latest.value
+);
 
 // ------- 日历筛选数据：仅已发布日期 -------
 const dates = computed(() =>
@@ -122,11 +140,20 @@ const urlState = useUrlState(filters);
 
 onMounted(async () => {
   urlState.read();
+  document.addEventListener("visibilitychange", refreshToday);
+  todayTimer = window.setInterval(refreshToday, 5 * 60 * 1000);
   try {
     allData.value = await loadProblems();
   } catch (err) {
     loadError.value = err.message;
+  } finally {
+    loading.value = false;
   }
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("visibilitychange", refreshToday);
+  window.clearInterval(todayTimer);
 });
 </script>
 
@@ -139,7 +166,7 @@ onMounted(async () => {
       <p>每天一道算法竞赛题目 · 只记录「来源 · 题目 · 链接」</p>
     </header>
 
-    <LatestCard :problem="latest" />
+    <LatestCard :problem="latest" :today="todayStr" />
 
     <FilterBar
       :dates="dates"
@@ -154,7 +181,8 @@ onMounted(async () => {
       @clear="clearFilters"
     />
 
-    <ProblemTable v-if="!loadError" :problems="filtered" />
+    <div v-if="loading" class="loading-state" role="status">正在加载题目…</div>
+    <ProblemTable v-else-if="!loadError" :problems="filtered" />
     <p v-else class="muted">加载题目数据失败：{{ loadError }}。请检查 <code>data/</code> 下的月份 json 是否合法，并通过 dev server 或 GitHub Pages 访问。</p>
 
     <!-- 投稿入口：暂时由 COMMUNITY.submitEnabled 关掉（改回 true 即恢复，不是删功能） -->
@@ -166,10 +194,13 @@ onMounted(async () => {
 
     <!-- 页面底部的讨论区，跟着「今日题目」走：一进站就能参与今天这题的讨论。
          每题各自的讨论仍在题解弹窗里（SolutionModal -> CommentSection）。
-         两者用的是同一个 discussion（term 相同），所以今日题会在两处各渲染一次。
-         「全部讨论」外链现在挂在它的标题右侧（all-discussions-link）。 -->
+         两者用的是同一个 discussion（term 相同），所以弹窗打开同一道题时，
+         底部这份会整个让位（bottomProblem 为 null）——同页挂两个 giscus iframe
+         会让同一个帖子被渲染两遍，且两边的评论不会互相同步。
+         「全部讨论」外链挂在它的标题右侧（all-discussions-link）。 -->
     <CommentSection
-      :problem="latest"
+      v-if="bottomProblem"
+      :problem="bottomProblem"
       heading="今日题目讨论"
       show-problem
       all-discussions-link

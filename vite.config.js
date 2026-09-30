@@ -62,11 +62,18 @@ export default defineConfig(async () => {
            * 连续几次部署会把这个窗口放大。
            *
            * 固定文件名后，新旧产物路径完全相同：节点滞后最多是"还是上一版"，
-           * 不会再出现"HTML 引用的文件不存在"。题解等懒加载分块仍保留哈希
-           * （它们只在点击时按需加载，且不做入口）。
+           * 不会再出现"HTML 引用的文件不存在"。
            *
-           * 内容更新靠：index.html 每次都会被重新拉取（同 URL 改名配合
-           * closeBundle 里的 ?v= 版本号），数据文件本身是 no-store。
+           * 内容更新靠：index.html 里的入口资源带上入口产物内容的版本号
+           * （见 scripts/data-index.mjs 的 stampEntryAssets），数据文件本身是 no-store。
+           *
+           * 懒加载分块同样用固定文件名，只是挪进 assets/chunks/ 避免与入口重名。
+           *
+           * 这些块是「打开题解弹窗」时才请求的：若名字里带内容哈希，一次新部署就会让
+           * 旧文件名消失。而浏览器里的 index.html 最多会缓存 10 分钟，于是
+           * 「刚部署完的那几分钟点开题解」正好会去请求一个已经不存在的文件。
+           * 固定名字后路径永远有效，最坏情况也只是拿到上一版（内容自洽，仍然能读）。
+           * 分目录是为了防极端情况：万一有题解文件叫 index.md，也不会撞上入口 assets/index.js。
            */
           entryFileNames: "assets/index.js",
           assetFileNames: (info) => {
@@ -74,7 +81,7 @@ export default defineConfig(async () => {
             if (/\.css$/i.test(name)) return "assets/index.css";
             return "assets/[name]-[hash][extname]";
           },
-          chunkFileNames: "assets/[name]-[hash].js",
+          chunkFileNames: "assets/chunks/[name].js",
         },
       },
     },

@@ -177,6 +177,11 @@ header p {
   font-size: 14px;
   margin-bottom: 12px;
 }
+.latest-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .btn {
   display: inline-block;
   background: var(--accent);
@@ -194,7 +199,6 @@ header p {
   background: var(--card);
   color: var(--accent);
   border: 1px solid var(--accent);
-  margin-left: 8px;
   cursor: pointer;
   font-family: inherit;
 }
@@ -244,6 +248,16 @@ header p {
   color: var(--muted);
   font-size: 13px;
   margin: 6px 0 10px;
+}
+.loading-state {
+  min-height: 140px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  margin-top: 4px;
+  font-size: 14px;
 }
 
 /* ---------- 筛选面板 ---------- */
@@ -479,6 +493,13 @@ header p {
   background: transparent;
 }
 
+tbody tr {
+  transition: background 0.15s ease;
+}
+tbody tr:hover {
+  background: color-mix(in srgb, var(--accent) 5%, var(--card));
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -499,9 +520,6 @@ th {
   top: 0;
   z-index: 1;
 }
-.dark th {
-  background: #1b1f28;
-}
 td {
   font-size: 14px;
   vertical-align: top;
@@ -509,6 +527,30 @@ td {
 tr:last-child td {
   border-bottom: none;
 }
+
+/* 日期 / 题解两列按内容定宽（width: 1% + nowrap），把余量全留给来源与题目；
+   否则窄屏下日期会被挤成 "2026-" / "09-30" 两行。 */
+.cell-date,
+.cell-solution {
+  width: 1%;
+  white-space: nowrap;
+}
+.cell-date {
+  font-variant-numeric: tabular-nums;
+}
+.cell-source {
+  min-width: 0;
+}
+/* 来源下方的站点名：代替原先整列打印的原始 URL（与题名同址，纯重复） */
+.src-host {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  opacity: 0.85;
+}
+
 .pro {
   font-weight: 600;
 }
@@ -521,19 +563,6 @@ tr:last-child td {
 .pro a:hover {
   color: var(--accent);
   border-bottom-color: var(--accent);
-}
-
-/* 链接列：原始 URL 用等宽+弱化色显示，hover 高亮并缩短视觉噪音 */
-td.raw-link a {
-  color: var(--muted);
-  font-size: 12px;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  text-decoration: none;
-  word-break: break-all;
-  transition: color 0.2s ease;
-}
-td.raw-link a:hover {
-  color: var(--accent);
 }
 
 /* ---------- 难度 / 标签统一显示在题名下方 ---------- */
@@ -581,13 +610,19 @@ td.raw-link a:hover {
   background: var(--accent);
   color: #fff;
 }
+.solution-toggle:focus-visible,
+.btn:focus-visible,
+.toolbar button:focus-visible,
+.dropdown-trigger:focus-visible,
+.chip:focus-visible,
+.df-day:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  outline-offset: 2px;
+}
 
-/* 无题解：灰色禁用态 */
-.solution-none {
-  color: var(--muted);
-  opacity: 0.55;
-  font-size: 12px;
-  cursor: not-allowed;
+/* 题解正文（含 2 MB 的 markdown chunk）按需加载时的占位 */
+.solution-loading {
+  font-size: 13px;
 }
 
 /* ---------- 居中题解模态框 ---------- */
@@ -770,6 +805,11 @@ td.raw-link a:hover {
   border-color: var(--accent);
   opacity: 1;
 }
+.code-copy.copy-failed {
+  color: var(--gold);
+  border-color: var(--gold);
+  opacity: 1;
+}
 
 .markdown-body blockquote {
   margin: 0.6em 0;
@@ -880,49 +920,85 @@ td.raw-link a:hover {
   border-radius: 0;
 }
 
-/* ---------- 代码高亮（highlight.js 主题覆盖，随护眼/暗色切换） ---------- */
-.hljs {
+/* ---------- 代码高亮（highlight.js 的 token 配色，随护眼/暗色切换） ----------
+   这里取代了 highlight.js 自带的 github.css：那套主题只有亮色版本，而且作为
+   markdown chunk 的异步 CSS 会在运行时晚于本文件注入，即使我们写了覆盖，
+   同权重（如它的 .hljs-meta .hljs-keyword）也会反过来赢，暗色代码块就变成
+   深红字压深底。自己写全之后配色只由 --hl-* 变量决定，与注入顺序无关。 */
+.markdown-body .hljs {
   color: var(--text);
+  /* 不要在这里写 background：.hljs 就挂在 <pre> 上，权重(0-2-0)高于
+     `.markdown-body pre`(0-1-1)，写 transparent 会把代码块底色一起抹掉。
+     底色统一由下面的 `.markdown-body pre` 提供。 */
 }
-.hljs-keyword,
-.hljs-selector-tag,
-.hljs-literal {
+/* 关键字 / 类型 / 内建符号 */
+.markdown-body .hljs-keyword,
+.markdown-body .hljs-doctag,
+.markdown-body .hljs-type,
+.markdown-body .hljs-template-tag,
+.markdown-body .hljs-template-variable,
+.markdown-body .hljs-variable.language_,
+.markdown-body .hljs-built_in,
+.markdown-body .hljs-symbol {
   color: var(--hl-keyword);
 }
-.hljs-string,
-.hljs-regexp,
-.hljs-addition {
-  color: var(--hl-string);
-}
-.hljs-number,
-.hljs-symbol,
-.hljs-bullet {
+/* 函数名 / 类名 / 章节名 */
+.markdown-body .hljs-title,
+.markdown-body .hljs-title.class_,
+.markdown-body .hljs-title.class_.inherited__,
+.markdown-body .hljs-title.function_,
+.markdown-body .hljs-section,
+.markdown-body .hljs-name,
+.markdown-body .hljs-selector-tag,
+.markdown-body .hljs-selector-pseudo {
   color: var(--hl-number);
 }
-.hljs-comment,
-.hljs-quote {
+/* 数字 / 运算符 / 属性 / 字面量 / 选择器 */
+.markdown-body .hljs-number,
+.markdown-body .hljs-operator,
+.markdown-body .hljs-literal,
+.markdown-body .hljs-attr,
+.markdown-body .hljs-attribute,
+.markdown-body .hljs-variable,
+.markdown-body .hljs-meta,
+.markdown-body .hljs-selector-attr,
+.markdown-body .hljs-selector-class,
+.markdown-body .hljs-selector-id,
+.markdown-body .hljs-bullet {
+  color: var(--hl-number);
+}
+/* 字符串 / 正则 */
+.markdown-body .hljs-string,
+.markdown-body .hljs-regexp,
+.markdown-body .hljs-meta .hljs-string {
+  color: var(--hl-string);
+}
+/* 注释 */
+.markdown-body .hljs-comment,
+.markdown-body .hljs-quote,
+.markdown-body .hljs-code,
+.markdown-body .hljs-formula {
   color: var(--hl-comment);
   font-style: italic;
 }
-.hljs-title,
-.hljs-title.function_ {
-  color: var(--hl-number);
+.markdown-body .hljs-subst,
+.markdown-body .hljs-emphasis,
+.markdown-body .hljs-strong {
+  color: var(--text);
 }
-.hljs-attr,
-.hljs-attribute,
-.hljs-variable,
-.hljs-template-variable,
-.hljs-type {
+.markdown-body .hljs-emphasis {
+  font-style: italic;
+}
+.markdown-body .hljs-strong {
+  font-weight: 700;
+}
+.markdown-body .hljs-addition {
+  color: var(--hl-string);
+  background: color-mix(in srgb, var(--hl-string) 12%, transparent);
+}
+.markdown-body .hljs-deletion {
   color: var(--hl-keyword);
-}
-.hljs-built_in,
-.hljs-meta,
-.hljs-doctag {
-  color: var(--hl-keyword);
-}
-.hljs-section,
-.hljs-name {
-  color: var(--hl-number);
+  background: color-mix(in srgb, var(--hl-keyword) 12%, transparent);
 }
 
 /* ---------- MathJax 公式（随主题换色）；SVG 用 currentColor，容器色即可控制 ---------- */
@@ -1002,6 +1078,14 @@ footer a {
     margin-top: 10px;
     padding: 12px;
     box-shadow: none;
+  }
+
+  .latest-actions {
+    align-items: stretch;
+  }
+  .latest-actions .btn {
+    flex: 1 1 auto;
+    text-align: center;
   }
 }
 

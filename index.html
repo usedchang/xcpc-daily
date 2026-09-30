@@ -4,9 +4,35 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>XCPC 每日一题</title>
+    <meta
+      name="description"
+      content="每天一道 XCPC 算法竞赛题：只记录来源、题目与链接，附难度与算法标签筛选、本地题解与讨论。"
+    />
+    <meta name="author" content="usedchang" />
+    <meta name="theme-color" content="#f3f1e9" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="XCPC 每日一题" />
+    <meta
+      property="og:description"
+      content="每天一道 XCPC 算法竞赛题：只记录来源、题目与链接，附难度与算法标签筛选、本地题解与讨论。"
+    />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <script>
+      // 主题必须在样式生效前定下来：等 src/main.js 执行再切 .dark，
+      // 暗色用户会先看到一帧白底（FOUC）。这里读的 key 与
+      // src/composables/useState.js 的 THEME_KEY 保持一致。
+      try {
+        if (localStorage.getItem("xcpc-theme") === "dark") {
+          document.documentElement.classList.add("dark");
+        }
+      } catch (e) {
+        /* 隐私模式下 localStorage 不可用，按浅色处理 */
+      }
+    </script>
   </head>
   <body>
     <div id="app"></div>
+    <noscript>本站是 Vue 单页应用，需要启用 JavaScript 才能查看题目列表。</noscript>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

@@ -9,11 +9,10 @@
  *     于是「改完 json 直接丢到部署目录」也能立刻生效，不必重新构建。
  *     清单/月文件缺失（离线、本地直开 dist）时静默回落内联数据。
  *
- * 合并规则：以 `date` 为键，后读到的（运行时 fetch 的）覆盖内联打包的。
+ * 合并规则：运行时成功拉到的月份以它为准，未成功拉到的月份才使用内联兜底。
  *
  * 路径深度提醒：本文件在 `src/data/` 下，`../data/*.json` 会指向
- * `src/data/*.json`（不存在），回仓库根目录必须写 `../../data/*.json`
- * （与原来 `import ... from "../../data.json"` 一致）。
+ * `src/data/*.json`（不存在），回仓库根目录必须写 `../../data/*.json`。
  *
  * 用普通 JSON 导入即可（不要加 `query: "?raw"`）：普通 JSON 导入由 vite:json 处理，
  * 构建期就变成对象字面量，可靠；`toItems` 兼容数组 / `{problems:[...]}` / 模块命名空间三种形状。
@@ -75,11 +74,12 @@ function isValidItem(it) {
   return it && typeof it === "object" && typeof it.date === "string" && it.date;
 }
 
-function mergeByDate(base, extra) {
-  const map = new Map();
-  for (const it of base) if (isValidItem(it)) map.set(it.date, it);
-  for (const it of extra) if (isValidItem(it)) map.set(it.date, it);
-  return [...map.values()];
+function mergeByMonth(base, fetched, loadedMonths) {
+  const result = base.filter((it) => {
+    const month = String(it?.date || "").slice(0, 7);
+    return !loadedMonths.has(month);
+  });
+  return [...result, ...fetched.filter(isValidItem)];
 }
 
 async function fetchJson(url, label) {
@@ -90,8 +90,8 @@ async function fetchJson(url, label) {
 }
 
 /**
- * 清单里的月份。清单不存在（例如没跑过 build 的老部署）时返回空数组，
- * 调用方会退回「只读老 data.json」。
+ * 清单里的月份。清单不存在（例如没跑过 build 的旧部署、或直开 dist）时返回空数组，
+ * 调用方会退回「只用内联打包的月文件」。
  *
  * `cache: "no-store"` 是必须的：GitHub Pages 给这些 json 的响应头是
  * `Cache-Control: max-age=600`，浏览器会缓存 10 分钟。清单一旦被缓存，
@@ -122,15 +122,18 @@ export async function loadProblems() {
   try {
     const months = await fetchIndexMonths();
     const fetched = [];
+    const loadedMonths = new Set();
     for (const month of months) {
       try {
         const items = await fetchJson(`./data/${month}.json`, `data/${month}.json`);
         fetched.push(...items);
+        loadedMonths.add(month);
       } catch {
         // 该月文件不在部署目录（或网络失败）：内联数据里已经有这个月
       }
     }
-    if (fetched.length) return mergeByDate(base, fetched);
+    // 空月份也是有效结果：它代表该月目前没有题目，不能被旧内联数据重新填回来。
+    if (loadedMonths.size) return mergeByMonth(base, fetched, loadedMonths);
   } catch {
     // 清单不可用：照旧用内联数据
   }
