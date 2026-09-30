@@ -12,6 +12,9 @@ solutions/index.json
 # 本地构建临时目录（TEMP/TMP 指向这里时用，见 .tmp/README.md）
 .tmp/
 
+# 本地排查用的临时脚本（dsh-*.mjs），不要提交
+dsh-*.mjs
+
 # 本地编译/输出产物
 solutions/output/
 
