@@ -18,7 +18,7 @@
  * （glob 的 eager 结果在不同构建环境下可能是数组、也可能是 `{default:[...]}` 模块对象，
  *  这个差异由 src/data/problems.js 的 toItems 兜住。）
  */
-import { readFileSync, writeFileSync, readdirSync, statSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync, statSync, mkdirSync, copyFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -280,6 +280,29 @@ export function dataIndexPlugin() {
   }
 
   /**
+   * 把 `data/<年-月>.json` 一起拷进部署目录。
+   *
+   * 页面运行时是按 `data/index.json` 去 fetch 每个月文件的（no-store），
+   * 这条路要成立，产物里就必须真的有这些文件——否则每次打开都会白跑几个 404。
+   * 顺带保留了「改完 json 直接覆盖部署目录即可生效、无需重新构建」的能力。
+   */
+  function copyMonthFiles() {
+    const target = resolve(PROJECT_ROOT, outDir, "data");
+    let copied = 0;
+    try {
+      mkdirSync(target, { recursive: true });
+      for (const name of readdirSync(dataDir)) {
+        if (!MONTH_FILE_RE.test(name)) continue;
+        copyFileSync(join(dataDir, name), join(target, name));
+        copied += 1;
+      }
+      console.log(`[data] 已拷入 ${outDir}/data/ 共 ${copied} 个月份文件`);
+    } catch (err) {
+      console.warn(`[data] 拷贝月份文件失败：${err.message}`);
+    }
+  }
+
+  /**
    * 给产物里的入口 JS/CSS 加上 `?v=<文件名>`。
    *
    * 为什么需要：GitHub Pages 给 index.html 的响应头是 `Cache-Control: max-age=600`，
@@ -323,6 +346,7 @@ export function dataIndexPlugin() {
       // closeBundle 在 rollup 全部产物写盘之后触发，此时 dist/ 已经存在
       if (building) {
         writeDeployedIndexes();
+        copyMonthFiles();
         stampEntryAssets();
       }
     },
