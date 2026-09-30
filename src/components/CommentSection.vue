@@ -16,11 +16,45 @@ const props = defineProps({
 const { dark } = useTheme();
 const container = ref(null);
 
-// 两种「没就绪」的含义完全不同，不能混为一谈：
-//   configured=false  —— giscus 还没接线，要给出配置指引
-//   ready=false       —— 配置没问题，只是题目数据还在路上（页面底部那份初始就会遇到）
-const configured = computed(() => isGiscusReady());
-const ready = computed(() => configured.value && Boolean(props.problem?.date));
+/**
+ * 加载状态机：idle -> loading -> ready | failed。
+ *
+ * giscus 的加载方式是「往容器里插一个 <script>，由脚本自己再插 iframe」，失败时页面
+ * 不报任何错，只留一段空白。常见失败原因是 giscus.app 被广告拦截 / 隐私插件拦掉
+ * （该域名在若干过滤列表里），或网络、网关故障。没有这个状态机，读者只会看到一片
+ * 空白，既不知道发生了什么，也找不到别的入口去评论。
+ *
+ * 判定「真的起来了」只以「容器里出现了 iframe」为准：
+ *   - iframe 的 load 事件在跨域场景下不可靠（contentDocument 受跨域策略保护，
+ *     连 readyState 都读不到，也不能假定 load 一定触发）；
+ *   - giscus 的 postMessage 可能比监听器更早发出，同样不能单独依赖。
+ * 于是超时只兜一种情况：什么都没插进来（被拦截 / 断网）；脚本自身的 error 事件
+ * 则让它立刻失败，不用等满超时。
+ */
+const state = ref("idle");
+const IFRAME_TIMEOUT = 8000;
+
+let iframeTimer = 0;
+let observer = null;
+
+function setState(next) {
+  state.value = next;
+}
+
+function markReady() {
+  window.clearTimeout(iframeTimer);
+  setState("ready");
+}
+
+function fail() {
+  window.clearTimeout(iframeTimer);
+  setState("failed");
+}
+
+function stopWatching() {
+  observer?.disconnect();
+  observer = null;
+}
 
 /**
  * 挂载 giscus。
@@ -31,10 +65,23 @@ const ready = computed(() => configured.value && Boolean(props.problem?.date));
  *     这也是这里不用 v-html/模板写死 script 标签的原因。
  */
 function mount() {
+  window.clearTimeout(iframeTimer);
+  stopWatching();
+
   const el = container.value;
-  if (!el || !ready.value) return;
+  // 题目数据还没到（页面底部那份初始就是这种情况）：别留下上一题的加载态
+  if (!el || !ready.value) {
+    setState("idle");
+    return;
+  }
 
   el.innerHTML = "";
+  setState("loading");
+
+  observer = new MutationObserver(() => {
+    if (el.querySelector("iframe")) markReady();
+  });
+  observer.observe(el, { childList: true, subtree: true });
 
   const g = COMMUNITY.giscus;
   const cfg = {
@@ -58,7 +105,15 @@ function mount() {
   });
   s.async = true;
   s.crossOrigin = "anonymous";
+  // 脚本本身就没拿到（被拦截 / 断网）：不必等满超时
+  s.addEventListener("error", () => {
+    if (el.contains(s)) fail();
+  });
   el.appendChild(s);
+
+  iframeTimer = window.setTimeout(() => {
+    if (!el.querySelector("iframe")) fail();
+  }, IFRAME_TIMEOUT);
 }
 
 /** 主题切换：giscus 在 iframe 里，只能 postMessage 通知它改主题。 */
@@ -70,8 +125,41 @@ function syncTheme() {
   );
 }
 
-onMounted(() => nextTick(mount));
+/** 重试：拦截插件临时关掉后不用刷新页面，清空容器再整块重建一次。 */
+function retry() {
+  nextTick(mount);
+}
+
+// 两种「没就绪」的含义完全不同，提示文案也完全不同：
+//   configured=false  —— giscus 还没接线，要给出配置指引
+//   ready=false       —— 配置没问题，只是题目数据还在路上（页面底部那份初始就会遇到）
+const configured = computed(() => isGiscusReady());
+const ready = computed(() => configured.value && Boolean(props.problem?.date));
+
+/**
+ * 讨论区下方的状态提示：不需要时返回空串。
+ *
+ * 这里刻意用「一个计算属性 + 一个 <p v-if="hint">」而不是 v-if / v-else-if 分支链：
+ * 分支链一旦有一条写成无条件 v-else，就会出现「giscus 已经渲染好了、下面却还挂着
+ * 一句加载提示」的鬼状态，而且极难从渲染结果反推是哪条分支赢了。
+ */
+const hint = computed(() => {
+  if (!configured.value) return "unconfigured";
+  if (!ready.value) return "pending"; // 题目数据还没到
+  if (state.value === "failed") return "failed";
+  if (state.value === "ready") return ""; // iframe 起来了，不用再提示
+  return "loading";
+});
+const discussionUrl = computed(() =>
+  ready.value ? `${discussionsUrl()}/${discussionTerm(props.problem)}` : discussionsUrl()
+);
+
+onMounted(() => {
+  nextTick(mount);
+});
 onBeforeUnmount(() => {
+  window.clearTimeout(iframeTimer);
+  stopWatching();
   if (container.value) container.value.innerHTML = "";
 });
 
@@ -99,16 +187,26 @@ watch(dark, () => nextTick(syncTheme));
       </a>
     </div>
 
+    <!-- 容器始终留在 DOM 里：giscus 要往它里面插 iframe，失败时也只有它是「真」的挂载点 -->
     <div v-if="ready" ref="container" class="giscus-host"></div>
 
-    <p v-else-if="configured" class="muted community-hint">正在加载题目信息…</p>
-
-    <p v-else class="muted community-hint">
+    <p v-if="hint === 'unconfigured'" class="muted community-hint">
       评论区尚未配置。在 <code>src/config/community.js</code> 里填入 giscus 的
       <code>repoId</code> 与 <code>categoryId</code>（于
       <a href="https://giscus.app" target="_blank" rel="noopener">giscus.app</a>
       选择本仓库后生成）即可启用；前置条件：仓库 public、已开启 Discussions、
       已安装 giscus App（需勾选 <code>discussions:write</code> 以便自动建帖）。
+    </p>
+
+    <p v-else-if="hint === 'pending'" class="muted community-hint">正在加载题目信息…</p>
+
+    <p v-else-if="hint === 'loading'" class="muted community-hint">评论区加载中…</p>
+
+    <p v-else-if="hint === 'failed'" class="muted community-hint">
+      评论区加载失败，通常是 <code>giscus.app</code> 被广告拦截 / 隐私插件挡掉了（该域名在若干过滤列表里），
+      也可能是网络暂时不通。
+      <button type="button" class="community-retry" @click="retry">重试</button>
+      <a :href="discussionUrl" target="_blank" rel="noopener">在 GitHub 上打开本页讨论 ↗</a>
     </p>
   </section>
 </template>

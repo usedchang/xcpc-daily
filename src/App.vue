@@ -162,7 +162,7 @@ onBeforeUnmount(() => {
     <GithubCorner />
     <header>
       <ThemeToggle />
-      <h1>XCPC 每日一题</h1>
+      <h1><span class="brand">XCPC</span> 每日一题</h1>
       <p>每天一道算法竞赛题目 · 只记录「来源 · 题目 · 链接」</p>
     </header>
 

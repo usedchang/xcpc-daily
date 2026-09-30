@@ -41,8 +41,9 @@ function has(p) {
             <span v-if="linkHost(p.link)" class="src-host">{{ linkHost(p.link) }}</span>
           </td>
           <td class="pro">
-            <!-- 整行只有这一个外链：链接列原本打印的完整 URL 与它同址，是重复信息 -->
-            <a :href="p.link" target="_blank" rel="noopener" :title="p.link">{{ p.title }}</a>
+            <!-- 整行只有这一个外链：链接列原本打印的完整 URL 与它同址，是重复信息。
+                 窄屏下日期列会被隐藏（见 style.css 的 690px 断点），所以日期也放进 title。 -->
+            <a :href="p.link" target="_blank" rel="noopener" :title="`${p.date} · ${p.link}`">{{ p.title }}</a>
             <span v-if="p.difficulty || (p.tags && p.tags.length)" class="badges">
               <span v-if="p.difficulty" class="badge diff">{{ p.difficulty }}</span>
               <span v-for="t in p.tags || []" :key="t" class="badge">{{ t }}</span>

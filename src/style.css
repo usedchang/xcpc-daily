@@ -1,32 +1,104 @@
+/* =============================================================================
+   XCPC 每日一题 · 全站样式
+   -----------------------------------------------------------------------------
+   约定：
+   - 颜色/圆角/阴影全部走 :root 变量，暗色主题只覆盖变量（:root.dark），
+     组件规则里不再出现颜色字面量，改一处即可两主题同时生效。
+   - 类名与组件模板一一对应（FilterBar = .filter-panel/.toolbar、ProblemTable =
+     .table-wrap、……），改样式不需要动 Vue 文件；只有个别「双单词」类名
+     （.badge.diff、.share-btn.done/.fail、.code-copy.copied）来自三元表达式或状态值。
+   - 层级（z-index）约定：表头 1 < 下拉面板 30 < GitHub 角标 60 < 分享按钮 80
+     < 题解弹窗 1000 < 投稿弹窗 1100。弹窗必须盖住所有悬浮件。
+   - 断点：640px（工具栏/投稿表单）、600px（角标/表格/分享按钮）。
+   ============================================================================= */
+
+/* ---------- 设计变量 ---------- */
 :root {
-  --bg: #f3f1e9;
-  --card: #fdfcf6;
-  --border: #ddd8c8;
-  --text: #3c3a32;
-  --muted: #7a766a;
-  --accent: #2f7f5f;
-  --tag-bg: #e6efe9;
-  --tag-text: #2f7f5f;
-  --gold: #b98a2f;
-  /* highlight.js / KaTeX 配色 */
-  --hl-pre-bg: #f6f8fa;
-  --hl-keyword: #d73a49;
-  --hl-string: #0a6c2f;
-  --hl-number: #005cc5;
-  --hl-comment: #6a737d;
+  /* —— 表面与文字（浅色：偏暖的纸感，但比原先更干净、层次更分明） —— */
+  --bg: #f6f4ee;          /* 页面底色 */
+  --card: #fffefb;        /* 卡片/表格/弹窗表面 */
+  --surface: #f1eee5;     /* 次级表面：表头、hover、输入框内底 */
+  --border: #e2ddcd;      /* 常规描边 */
+  --border-strong: #cfc8b2; /* 强调描边（表头底、分隔） */
+  --text: #2f2d26;        /* 正文 */
+  --muted: #6f6b5e;       /* 次级文字 */
+  --faint: #9a958a;       /* 三级文字（站点名、脚注） */
+
+  /* —— 主题色 —— */
+  --accent: #2c7d5c;      /* 主色：护眼绿（用于文字、描边、图标） */
+  /* 实心填充色（按钮底、选中态）与 --accent 分开：暗色主题里需要「亮色文字 +
+     深色底」，而链接/描边又需要亮色，同一个值满足不了两边的对比度要求。 */
+  --accent-fill: #2c7d5c;
+  --accent-fill-hover: #236449;
+  --accent-soft: color-mix(in srgb, var(--accent) 10%, var(--card));
+  --accent-line: color-mix(in srgb, var(--accent) 25%, var(--border));
+  --on-accent: #ffffff;   /* 填充色上的文字 */
+  --gold: #a97c22;        /* 点缀色：难度、提醒 */
+  --gold-soft: color-mix(in srgb, var(--gold) 12%, var(--card));
+  --gold-line: color-mix(in srgb, var(--gold) 34%, var(--border));
+
+  /* —— 标签胶囊 —— */
+  --tag-bg: color-mix(in srgb, var(--accent) 9%, var(--card));
+  --tag-text: #276b50;
+  --tag-line: color-mix(in srgb, var(--accent) 20%, transparent);
+
+  /* —— 形状 —— */
+  --r-sm: 6px;
+  --r-md: 9px;
+  --r-lg: 14px;
+  --r-xl: 18px;
+  --r-pill: 999px;
+
+  /* —— 阴影：任何悬浮面都要有「离开页面」的感觉 —— */
+  --shadow-sm: 0 1px 2px rgba(60, 54, 40, 0.05);
+  --shadow-md: 0 2px 4px rgba(60, 54, 40, 0.05), 0 8px 20px -10px rgba(60, 54, 40, 0.16);
+  --shadow-lg: 0 12px 28px -8px rgba(60, 54, 40, 0.18), 0 2px 6px rgba(60, 54, 40, 0.06);
+  --shadow-xl: 0 32px 70px -20px rgba(35, 31, 20, 0.4), 0 6px 18px rgba(35, 31, 20, 0.12);
+
+  --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+  --tint: color-mix(in srgb, var(--accent) 4%, var(--card)); /* 行 hover 底色 */
+
+  /* —— highlight.js / MathJax 配色 —— */
+  --hl-pre-bg: #f7f6f1;
+  --hl-keyword: #c0392b;
+  --hl-string: #146c43;
+  --hl-number: #0b5fa5;
+  --hl-comment: #7c8794;
 }
+
 :root.dark {
-  --bg: #0f1115;
-  --card: #171a21;
-  --border: #262b36;
-  --text: #e8eaf0;
-  --muted: #9aa3b2;
-  --accent: #4da3ff;
-  --tag-bg: #1e2a3a;
-  --tag-text: #8ecbff;
-  --gold: #f5c451;
-  /* highlight.js / KaTeX 配色（暗色） */
-  --hl-pre-bg: #1b1f28;
+  /* 暗色：偏蓝的深灰（≠ 纯黑），表面之间靠亮度而非描边区分 */
+  --bg: #0e1013;
+  --card: #171a20;
+  --surface: #1d2128;
+  --border: #282d36;
+  --border-strong: #363c47;
+  --text: #e6e9ef;
+  --muted: #9aa3b1;
+  --faint: #6f7887;
+
+  --accent: #4fa8ff;
+  /* 暗色下按钮底要更深：#4fa8ff 配白字只有 2.3:1 的对比度，白字在亮蓝上几乎糊住。
+     #2a6fbf 配白字约 5:1；链接、描边继续用亮蓝色。 */
+  --accent-fill: #2a6fbf;
+  --accent-fill-hover: #3580d4;
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--card));
+  --accent-line: color-mix(in srgb, var(--accent) 30%, var(--border));
+  --on-accent: #ffffff;
+  --gold: #e8b955;
+  --gold-soft: color-mix(in srgb, var(--gold) 14%, var(--card));
+  --gold-line: color-mix(in srgb, var(--gold) 34%, var(--border));
+
+  --tag-bg: color-mix(in srgb, var(--accent) 14%, var(--card));
+  --tag-text: #9fd0ff;
+  --tag-line: color-mix(in srgb, var(--accent) 26%, transparent);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.45), 0 10px 24px -12px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 14px 32px -10px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 36px 80px -24px rgba(0, 0, 0, 0.85), 0 8px 24px rgba(0, 0, 0, 0.5);
+
+  --hl-pre-bg: #1b1f27;
   --hl-keyword: #ff7b72;
   --hl-string: #a5d6ff;
   --hl-number: #79c0ff;
@@ -36,13 +108,18 @@
 * {
   box-sizing: border-box;
 }
+
+/* 主题色只在悬停/聚焦时出现，过渡统一走这两条时长 */
 :root {
   color-scheme: light;
+  --t-fast: 0.14s ease;
+  --t-base: 0.22s ease;
 }
 :root.dark {
   color-scheme: dark;
 }
 
+/* ---------- 基础排版 ---------- */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
@@ -50,47 +127,105 @@ body {
   background: var(--bg);
   color: var(--text);
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   transition: background 0.25s ease, color 0.25s ease;
 }
 
-.wrap {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 32px 20px 64px;
+/* 页顶一条 3px 的渐变发丝线：给纯色背景一个视觉起点，滚动时自然离开 */
+body::before {
+  content: "";
+  display: block;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--accent) 55%, transparent) 26%,
+    color-mix(in srgb, var(--gold) 60%, transparent) 52%,
+    color-mix(in srgb, var(--accent) 55%, transparent) 74%,
+    transparent
+  );
 }
 
-/* ---------- 顶部：标题居中，主题开关在左上角，GitHub 角标在右上角 ---------- */
+::selection {
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+a {
+  color: var(--accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* 尊重「减少动态效果」：所有过渡/动画都关掉，只保留颜色变化 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- 页面骨架 ---------- */
+.wrap {
+  /* 860 -> 1040：题表两列（来源/题目）在 1000px 上下才不会互相挤到换行 */
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 30px 24px 72px;
+}
+
+/* ---------- 顶部 ---------- */
 header {
   position: relative;
-  text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 26px;
 }
+/* 标题双色：品牌词走主色，其余保持正文色。
+   不用渐变裁切取字（background-clip: text）—— 渐变一旦横跨整个标题，
+   右侧的「每日一题」会淡到接近背景色，浅色/暗色两边都显脏。 */
 header h1 {
-  margin: 0 0 8px;
-  font-size: 28px;
-  letter-spacing: 1px;
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+header h1 .brand {
+  color: var(--accent);
 }
 header p {
-  margin: 0;
+  margin: 9px 0 0;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 13.5px;
+  text-align: center;
 }
+
+/* 左上角主题开关：圆角胶囊，hover 时描边亮起（绝对定位在标题行左侧） */
 .theme-toggle {
   position: absolute;
   top: 0;
-  left: 0; /* 右上角让给 GitHub 角标 */
+  left: 0; /* 右上角留给 GitHub 角标 */
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   background: var(--card);
-  color: var(--text);
+  color: var(--muted);
   border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 6px 14px;
-  font-size: 13px;
+  border-radius: var(--r-pill);
+  padding: 6px 13px;
+  font-size: 12.5px;
+  font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  box-shadow: var(--shadow-sm);
+  transition: color var(--t-base), border-color var(--t-base), background var(--t-base);
 }
 .theme-toggle:hover {
-  border-color: var(--accent);
+  border-color: var(--accent-line);
   color: var(--accent);
 }
 
@@ -101,26 +236,26 @@ header p {
 .gh-corner {
   /* 底座颜色（小猫以外的晕染底色）：rgba 末位是它自己的透明度 —— 1 就是原来那个实心黑圈，
      调小就连黑圈一起变透明。别用元素级 opacity 代替：那样浅色主题下白猫会跟米色背景糊成一片。 */
-  --gh-tint: rgba(36, 41, 47, 0.7);
+  --gh-tint: rgba(36, 41, 47, 0.62);
   /* 贴在页面（文档）右上角，跟着内容一起滚 —— 页面往下滑它就滚出视口，不再固定悬浮。
      这里靠的是"最近的定位祖先不存在"：.wrap 和 body 都是 static，所以包含块是初始包含块，
      top/right 以页面原点算。以后若给 .wrap 等祖先加了 position/transform，要改成显式坐标。 */
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 12px;
+  right: 12px;
   z-index: 60; /* 低于题解弹窗（1000），弹窗打开时能盖住它 */
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   color: var(--gh-tint);
   background: currentColor;
   /* 外层虚化程度：左值 = 从哪个半径开始变虚，右值 = 到哪个半径完全透明，
      两者之差就是柔边宽度。想更虚：左值调小或右值调大；想更实：反过来。
-     百分比相对的是渐变半径：盒子 52px 时 100% ≈ 36.8px（圆心到角），所以 63% ≈ 23px、
-     72% ≈ 26.5px；而盒子边缘在 70.7%（≈ 26px）—— 右值一旦超过它，就等于"没淡完就被裁断"，
+     百分比相对的是渐变半径：盒子 50px 时 100% ≈ 35.4px（圆心到角），所以 63% ≈ 22px、
+     72% ≈ 25.5px；而盒子边缘在 70.7%（≈25px）—— 右值一旦超过它，就等于"没淡完就被裁断"，
      边界会留一圈硬边。手机上盒子 44px，百分比等比跟着缩，不用改。 */
   -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 63%, transparent 72%);
   mask-image: radial-gradient(circle at 50% 50%, #000 63%, transparent 72%);
@@ -137,7 +272,7 @@ header p {
   transition: opacity 0.25s ease;
 }
 :root.dark .gh-corner {
-  --gh-tint: rgba(48, 54, 61, 0.5);
+  --gh-tint: rgba(122, 132, 148, 0.34);
 }
 .gh-corner:hover,
 .gh-corner:focus-visible {
@@ -149,70 +284,170 @@ header p {
   opacity: 1;
 }
 
-/* ---------- 今日题目卡 ---------- */
-.latest {
-  background: linear-gradient(135deg, #eef5ec, #e9efe9);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px 22px;
-  margin-bottom: 24px;
-}
-.dark .latest {
-  background: linear-gradient(135deg, #1a2030, #171a21);
-}
-.latest .label {
-  color: var(--gold);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  margin-bottom: 8px;
-}
-.latest .title {
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-.latest .meta {
-  color: var(--muted);
-  font-size: 14px;
-  margin-bottom: 12px;
-}
-.latest-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
+/* ---------- 按钮 ---------- */
 .btn {
-  display: inline-block;
-  background: var(--accent);
-  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--accent-fill);
+  color: var(--on-accent);
   text-decoration: none;
-  padding: 8px 16px;
-  border-radius: 8px;
+  padding: 9px 17px;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
   font-size: 14px;
   font-weight: 600;
+  font-family: inherit;
+  line-height: 1.4;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background var(--t-base), border-color var(--t-base), color var(--t-base),
+    box-shadow var(--t-base), transform var(--t-fast);
 }
 .btn:hover {
-  opacity: 0.9;
+  background: var(--accent-fill-hover);
+  box-shadow: var(--shadow-md);
+}
+.btn:active {
+  transform: translateY(1px);
 }
 .btn.ghost {
   background: var(--card);
   color: var(--accent);
-  border: 1px solid var(--accent);
-  cursor: pointer;
-  font-family: inherit;
+  border-color: var(--accent-line);
+}
+.btn.ghost:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.btn[disabled]:hover {
+  background: var(--accent-fill);
+  transform: none;
+}
+.btn.ghost[disabled]:hover {
+  background: var(--card);
 }
 
-/* ---------- 工具栏 ---------- */
-.toolbar {
+/* ---------- 今日题目卡 ---------- */
+.latest {
+  position: relative;
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 20px 24px 22px;
+  margin-bottom: 22px;
+  box-shadow: var(--shadow-md);
+}
+/* 左侧主色竖条 + 右上角柔光：把「今天」这张卡和下方列表拉开层次。
+   柔光刻意开得很大很淡，并让圆心落在卡片之外 —— 圆心贴边时渐变会在圆角处
+   被硬生生裁断，暗色主题下尤其像一块脏斑；半径也别铺满整卡，否则一片蓝雾。 */
+.latest::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 20%, transparent));
+}
+.latest::after {
+  content: "";
+  position: absolute;
+  top: -110px;
+  right: -100px;
+  width: 300px;
+  height: 250px;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 11%, transparent), transparent);
+  pointer-events: none;
+}
+.latest > * {
+  position: relative; /* 压在 ::after 柔光之上 */
+}
+.latest .label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--gold);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  margin-bottom: 9px;
+}
+.latest .label::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 18%, transparent);
+}
+.latest .title {
+  font-size: 21px;
+  line-height: 1.35;
+  font-weight: 700;
+  margin-bottom: 7px;
+}
+.latest .meta {
+  color: var(--muted);
+  font-size: 13.5px;
+  margin-bottom: 14px;
+}
+.latest .meta-date {
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+.latest-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+/* ---------- 难度 / 标签徽章（题卡与题表共用） ---------- */
+.badges {
+  display: block;
+  margin-top: 5px;
+  line-height: 1.9;
+}
+.badges:empty {
+  margin-top: 0;
+}
+.badge {
+  display: inline-block;
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  padding: 0 9px;
+  font-size: 11.5px;
+  font-weight: 600;
+  margin: 1px 4px 1px 0;
+  white-space: nowrap;
+}
+/* 难度单独一套配色（金），与算法标签区分开 */
+.badge.diff {
+  background: var(--gold-soft);
+  color: var(--gold);
+  border-color: var(--gold-line);
+}
+
+/* ---------- 工具栏（搜索 + 日期/标签下拉 + 清除） ---------- */
+.filter-panel {
+  position: relative;
+  margin-bottom: 14px;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
   align-items: center;
-  margin-bottom: 18px;
 }
 .toolbar .grow {
-  flex: 1 1 220px;
+  flex: 1 1 260px;
 }
 .toolbar input[type="search"],
 .toolbar select,
@@ -220,17 +455,22 @@ header p {
   background: var(--card);
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 12px;
+  border-radius: var(--r-md);
+  padding: 9px 13px;
   font-size: 14px;
   font-family: inherit;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color var(--t-base), box-shadow var(--t-base), color var(--t-base),
+    background var(--t-base);
+}
+.toolbar input[type="search"] {
+  min-width: 0;
+  box-shadow: var(--shadow-sm);
 }
 .toolbar input[type="search"]:focus,
 .toolbar select:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  box-shadow: var(--ring);
 }
 .toolbar button {
   cursor: pointer;
@@ -238,35 +478,44 @@ header p {
   white-space: nowrap;
 }
 .toolbar button:hover {
-  border-color: var(--accent);
+  border-color: var(--accent-line);
   color: var(--accent);
+  background: var(--accent-soft);
 }
 .toolbar input[type="search"]::placeholder {
-  color: var(--muted);
+  color: var(--faint);
 }
+
+/* 结果计数：表格上方的细行，数字用主题色点出来 */
 .result-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: var(--muted);
   font-size: 13px;
-  margin: 6px 0 10px;
+  margin: 0 0 10px;
+  padding-left: 6px;
 }
+.result-info::before {
+  content: "";
+  flex: none;
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--accent-line);
+}
+
 .loading-state {
-  min-height: 140px;
+  min-height: 160px;
   display: grid;
   place-items: center;
   color: var(--muted);
   border: 1px dashed var(--border);
-  border-radius: 10px;
-  margin-top: 4px;
+  border-radius: var(--r-lg);
   font-size: 14px;
 }
 
-/* ---------- 筛选面板 ---------- */
-.filter-panel {
-  position: relative;
-  margin-bottom: 18px;
-}
-
-/* 工具栏里的下拉触发按钮 */
+/* ---------- 下拉面板（日期 / 标签） ---------- */
 .dropdown {
   position: relative;
 }
@@ -278,13 +527,15 @@ header p {
   font-weight: 600;
   white-space: nowrap;
 }
+/* 该维度上有筛选时：描边点亮 + 一个圆点，不靠颜色也能看出来 */
 .dropdown-trigger.lit {
-  border-color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
   color: var(--accent);
 }
 .dropdown-trigger .dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--accent);
   display: inline-block;
@@ -293,24 +544,25 @@ header p {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  z-index: 20;
-  width: 320px;
-  max-width: 90vw;
+  z-index: 30;
+  width: 328px;
+  max-width: min(90vw, 328px);
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-lg);
 }
 .date-filter,
 .tag-filter {
   min-width: 0;
 }
 .df-row-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-  margin: 10px 0 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: var(--faint);
+  margin: 14px 0 7px;
 }
 .df-row-label:first-child {
   margin-top: 0;
@@ -324,42 +576,57 @@ header p {
   background: var(--card);
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 4px 12px;
+  border-radius: var(--r-pill);
+  padding: 4px 13px;
   font-size: 13px;
   cursor: pointer;
   font-family: inherit;
-  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  transition: border-color var(--t-base), color var(--t-base), background var(--t-base);
 }
 .chip:hover {
-  border-color: var(--accent);
+  border-color: var(--accent-line);
   color: var(--accent);
+  background: var(--accent-soft);
 }
 .chip.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+  background: var(--accent-fill);
+  border-color: var(--accent-fill);
+  color: var(--on-accent);
+  font-weight: 600;
 }
+.chip.active:hover {
+  background: var(--accent-fill-hover);
+  border-color: var(--accent-fill-hover);
+  color: var(--on-accent);
+}
+
+/* 日历：标题行 + 星期行 + 日期行是同一个 7 列网格，
+   两行共享完全一致的 grid-template-columns / gap，保证逐列对齐 */
 .df-cal-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 13px;
-  font-weight: 600;
-  margin: 12px 0 6px;
+  font-weight: 700;
+  margin: 16px 0 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
 }
 .df-clear-link {
   background: none;
   border: none;
   color: var(--accent);
   font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  padding: 0;
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
   font-family: inherit;
+  transition: background var(--t-base);
 }
-
-/* 日历：星期行 + 日期行是同一个 7 列网格，
-   两行共享完全一致的 grid-template-columns / gap，保证逐列对齐 */
+.df-clear-link:hover {
+  background: var(--accent-soft);
+}
 .df-calendar {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -367,8 +634,9 @@ header p {
 }
 .df-week {
   text-align: center;
-  font-size: 12px;
-  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--faint);
   line-height: 28px;
 }
 .df-empty {
@@ -379,51 +647,62 @@ header p {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: var(--r-md);
   border: 1px solid transparent;
   background: transparent;
-  color: var(--muted);
+  color: var(--faint);
   font-size: 13px;
   cursor: default;
   font-family: inherit;
   padding: 0;
   min-width: 0;
+  transition: background var(--t-base), border-color var(--t-base), color var(--t-base);
 }
+/* .on = 该日有题；.active = 当前选中 */
 .df-day.on {
-  background: var(--card);
-  border-color: var(--border);
+  background: var(--surface);
+  border-color: transparent;
   color: var(--text);
+  font-weight: 600;
   cursor: pointer;
 }
 .df-day.on:hover {
   border-color: var(--accent);
   color: var(--accent);
+  background: var(--accent-soft);
 }
 .df-day.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+  background: var(--accent-fill);
+  border-color: var(--accent-fill);
+  color: var(--on-accent);
+}
+.df-day.active:hover {
+  background: var(--accent-fill-hover);
+  border-color: var(--accent-fill-hover);
+  color: var(--on-accent);
 }
 .df-day:disabled {
   cursor: default;
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 /* ---------- 标签下拉（codeforces 风格滚动多选） ---------- */
 .tag-scroll {
-  max-height: 260px;
+  max-height: 280px;
   overflow-y: auto;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--r-md);
   padding: 4px;
+  background: var(--surface);
   scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  scrollbar-color: var(--border-strong) transparent;
+  overscroll-behavior: contain;
 }
 .tag-scroll::-webkit-scrollbar {
   width: 8px;
 }
 .tag-scroll::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--border-strong);
   border-radius: 8px;
 }
 .tag-scroll::-webkit-scrollbar-thumb:hover {
@@ -432,22 +711,25 @@ header p {
 .tag-option {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 8px;
-  border-radius: 6px;
+  gap: 9px;
+  padding: 7px 9px;
+  border-radius: var(--r-sm);
   cursor: pointer;
   font-size: 13px;
-  transition: background 0.15s ease;
+  transition: background var(--t-fast);
 }
 .tag-option:hover {
-  background: var(--bg);
+  background: var(--card);
 }
 .tag-option.active {
-  background: var(--tag-bg);
+  background: var(--accent-soft);
 }
 .tag-option input[type="checkbox"] {
   accent-color: var(--accent);
   margin: 0;
+  width: 15px;
+  height: 15px;
+  flex: none;
 }
 .tag-name {
   flex: 1;
@@ -456,35 +738,45 @@ header p {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.tag-option.active .tag-name {
+  font-weight: 600;
+  color: var(--accent);
+}
 .tag-count {
   font-size: 11px;
-  color: var(--muted);
-  background: var(--tag-bg);
-  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+  color: var(--faint);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
   padding: 0 8px;
 }
 .tag-option.active .tag-count {
-  background: var(--card);
+  color: var(--accent);
+  border-color: var(--accent-line);
 }
 
-/* ---------- 表格 ---------- */
+/* ---------- 题目表 ---------- */
 .table-wrap {
-  max-height: 60vh;
-  overflow-y: auto;
-  overflow-x: auto;
-  border-radius: 12px;
+  /* 固定高度 + 内部滚动：题表是页面的主体，让它在视口内自成一块，
+     表头（sticky）始终可见。70vh 给长列表留出更多行，又不会撑破首屏。 */
+  max-height: 70vh;
+  overflow: auto;
   border: 1px solid var(--border);
+  border-radius: var(--r-lg);
   background: var(--card);
+  box-shadow: var(--shadow-md);
   scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  scrollbar-color: var(--border-strong) transparent;
 }
 .table-wrap::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 .table-wrap::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--border-strong);
   border-radius: 8px;
+  border: 2px solid var(--card);
 }
 .table-wrap::-webkit-scrollbar-thumb:hover {
   background: var(--muted);
@@ -493,145 +785,325 @@ header p {
   background: transparent;
 }
 
-tbody tr {
-  transition: background 0.15s ease;
-}
-tbody tr:hover {
-  background: color-mix(in srgb, var(--accent) 5%, var(--card));
-}
-
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   background: var(--card);
 }
 th,
 td {
-  padding: 12px 14px;
+  padding: 12px 16px;
   text-align: left;
-  border-bottom: 1px solid var(--border);
-}
-th {
-  background: var(--bg);
-  font-size: 13px;
-  color: var(--muted);
-  font-weight: 600;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-td {
-  font-size: 14px;
   vertical-align: top;
 }
-tr:last-child td {
-  border-bottom: none;
-}
-
-/* 日期 / 题解两列按内容定宽（width: 1% + nowrap），把余量全留给来源与题目；
-   否则窄屏下日期会被挤成 "2026-" / "09-30" 两行。 */
-.cell-date,
-.cell-solution {
-  width: 1%;
+/* 表头：吸顶 + 不透明底色。
+   z-index 必须压过单元格：sticky 自己会开一个层叠上下文，但只写 z-index: 1 时
+   「来源」列里 .src-host 那种带定位的兄弟内容仍会画到表头上面（实测会看到
+   站点名浮在表头上）。2 足以盖住所有普通单元格内容，又低于下拉面板（30）。 */
+th {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-strong);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--faint);
+  position: sticky;
+  top: 0;
+  z-index: 2;
   white-space: nowrap;
 }
+tbody td {
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+tbody tr:last-child td {
+  border-bottom: none;
+}
+tbody tr {
+  transition: background var(--t-fast);
+}
+tbody tr:hover {
+  background: var(--tint);
+}
+
+/* 列宽：日期与题解按内容定宽，余量在「来源 / 题目」之间按 3:4 分配。
+   用 calc + 百分比而不是 width:1%，是为了让来源列拿到确定的宽度 ——
+   否则「The 2021 ICPC China Zhejiang Provincial Programming Contest (18th)」
+   这类长来源会被反复折行，整张表忽高忽低。 */
 .cell-date {
+  width: 96px;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
+  font-size: 13px;
 }
 .cell-source {
+  width: calc((100% - 178px) * 0.32);
   min-width: 0;
+}
+.cell-solution {
+  width: 82px;
+  white-space: nowrap;
+}
+.cell-date,
+.cell-solution {
+  color: var(--muted);
 }
 /* 来源下方的站点名：代替原先整列打印的原始 URL（与题名同址，纯重复） */
 .src-host {
   display: block;
-  margin-top: 2px;
-  color: var(--muted);
+  margin-top: 3px;
+  color: var(--faint);
   font-size: 11px;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  opacity: 0.85;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
 }
 
+/* 题名即外链：hover 时下划线从无到有地「长」出来 */
 .pro {
   font-weight: 600;
 }
 .pro a {
   color: var(--text);
   text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: color 0.2s ease, border-color 0.2s ease;
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0 1px;
+  transition: color var(--t-base), background-size var(--t-base);
 }
 .pro a:hover {
   color: var(--accent);
-  border-bottom-color: var(--accent);
+  background-size: 100% 1px;
 }
 
-/* ---------- 难度 / 标签统一显示在题名下方 ---------- */
-.badges {
-  display: block;
-  margin-top: 4px;
-  line-height: 1.8;
-}
-.badges:empty {
-  margin-top: 0;
-}
-.badge {
-  display: inline-block;
-  background: var(--tag-bg);
-  color: var(--tag-text);
-  border-radius: 6px;
-  padding: 1px 8px;
-  font-size: 12px;
-  margin: 1px 3px 1px 0;
-  white-space: nowrap;
-}
-.diff {
-  color: var(--gold);
-  font-weight: 600;
-}
 .muted {
   color: var(--muted);
 }
 
-/* ---------- 题解 ---------- */
+/* 空结果：整行居中留白，别让一行小字孤零零贴在表头下面 */
+tbody tr:has(> td[colspan]) > td {
+  padding: 44px 16px;
+  text-align: center;
+  color: var(--faint);
+}
+
+/* ---------- 题解按钮 ---------- */
 .solution-toggle {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: var(--card);
   color: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  padding: 2px 8px;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-pill);
+  padding: 3px 12px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
+  transition: background var(--t-base), color var(--t-base), border-color var(--t-base);
 }
 .solution-toggle:hover {
-  background: var(--accent);
-  color: #fff;
-}
-.solution-toggle:focus-visible,
-.btn:focus-visible,
-.toolbar button:focus-visible,
-.dropdown-trigger:focus-visible,
-.chip:focus-visible,
-.df-day:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--accent) 28%, transparent);
-  outline-offset: 2px;
+  background: var(--accent-fill);
+  border-color: var(--accent-fill);
+  color: var(--on-accent);
 }
 
-/* 题解正文（含 2 MB 的 markdown chunk）按需加载时的占位 */
+/* ---------- 题解正文（含 2 MB 的 markdown chunk）按需加载时的占位 ---------- */
 .solution-loading {
   font-size: 13px;
 }
 
-/* ---------- 居中题解模态框 ---------- */
+/* ---------- 社区区块（社区题解 / 讨论 / 投稿入口） ---------- */
+.community-block {
+  margin-top: 26px;
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+}
+.community-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+.community-head::before {
+  content: "";
+  flex: none;
+  width: 3px;
+  height: 15px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.community-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: var(--r-pill);
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+/* 标题旁标注「这是哪道题」，只用于页面底部那份评论区 */
+.community-sub {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--faint);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* 区块标题右侧的外链，例如「全部讨论 ↗」 */
+.community-head-link {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.community-head-link:hover {
+  text-decoration: underline;
+}
+.community-submit-link {
+  margin-left: auto;
+  border: 1px solid var(--accent-line);
+  background: var(--card);
+  color: var(--accent);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 3px 11px;
+  border-radius: var(--r-pill);
+  transition: background var(--t-base), border-color var(--t-base);
+}
+.community-submit-link:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.community-hint {
+  font-size: 13px;
+  line-height: 1.7;
+}
+.community-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.community-item {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface);
+  transition: border-color var(--t-base);
+}
+.community-item:hover {
+  border-color: var(--border-strong);
+}
+.community-item-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 10px 13px;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--t-fast);
+}
+.community-item-head:hover {
+  background: var(--accent-soft);
+}
+.community-avatar {
+  border-radius: 50%;
+  flex: none;
+  background: var(--border);
+}
+.community-author {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.community-title {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.community-caret {
+  margin-left: auto;
+  color: var(--faint);
+  font-size: 12px;
+  flex: none;
+}
+.community-item-body {
+  padding: 6px 15px 15px;
+  border-top: 1px solid var(--border);
+  background: var(--card);
+}
+.community-item-foot {
+  margin-top: 12px;
+  font-size: 12px;
+}
+.giscus-host {
+  margin-top: 4px;
+}
+/* 讨论区的加载 / 失败提示：失败时给重试与「去 GitHub 评论」两条出路。
+   （giscus.app 被拦截插件挡掉时 iframe 永远不出现，读者否则只会看到一片空白。） */
+.community-hint code {
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.94em;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 0 5px;
+}
+.community-retry {
+  margin: 0 6px;
+  border: 1px solid var(--accent-line);
+  background: var(--card);
+  color: var(--accent);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  transition: background var(--t-base), border-color var(--t-base);
+}
+.community-retry:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.site-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 24px 0 8px;
+}
+
+/* ---------- 居中题解 / 投稿模态框 ---------- */
 .solution-modal {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(20, 22, 26, 0.45);
-  backdrop-filter: blur(3px);
+  background: color-mix(in srgb, #14161a 48%, transparent);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -641,12 +1113,13 @@ tr:last-child td {
   background: var(--card);
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--r-xl);
+  /* 弹窗里几乎全是正文，比页面窄一点读起来更顺（页面 1040px 是给题表两列用的） */
   width: min(840px, 100%);
-  max-height: min(82vh, 900px);
+  max-height: min(84vh, 940px);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-xl);
   overflow: hidden;
 }
 .solution-modal-head {
@@ -654,9 +1127,9 @@ tr:last-child td {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 18px;
+  padding: 15px 20px;
   border-bottom: 1px solid var(--border);
-  background: var(--bg);
+  background: var(--surface);
 }
 .solution-modal-title {
   font-weight: 700;
@@ -667,43 +1140,50 @@ tr:last-child td {
   white-space: nowrap;
 }
 .solution-modal-date {
-  color: var(--muted);
-  font-weight: 600;
-  font-size: 13px;
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
   margin-right: 10px;
+  padding: 1px 9px;
+  border-radius: var(--r-pill);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
   white-space: nowrap;
 }
 .solution-modal-close {
   flex: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-md);
   border: 1px solid var(--border);
   background: var(--card);
-  color: var(--text);
-  font-size: 16px;
+  color: var(--muted);
+  font-size: 15px;
   line-height: 1;
   cursor: pointer;
   font-family: inherit;
-  transition: border-color 0.2s ease, color 0.2s ease;
+  transition: border-color var(--t-base), color var(--t-base), background var(--t-base);
 }
 .solution-modal-close:hover {
   border-color: var(--accent);
   color: var(--accent);
+  background: var(--accent-soft);
 }
 .solution-modal-body {
-  padding: 20px 22px 24px;
+  padding: 22px 24px 26px;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  scrollbar-color: var(--border-strong) transparent;
 }
 .solution-modal-body::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 .solution-modal-body::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--border-strong);
   border-radius: 8px;
+  border: 2px solid var(--card);
 }
 
 /* 模态框出现 / 消失动画 */
@@ -724,31 +1204,146 @@ tr:last-child td {
   transform: translateY(14px) scale(0.97);
 }
 
-/* 题解正文 / hint 的 markdown 渲染 */
-.markdown-body {
-  font-size: 14px;
+/* ---------- 投稿生成器 ---------- */
+.submit-modal {
+  z-index: 1100; /* 需要盖在题解弹窗（z-index: 1000）之上 */
+}
+.submit-lead {
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  font-size: 13px;
+  color: var(--text);
   line-height: 1.7;
+}
+.submit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.submit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.submit-label {
+  font-size: 13px;
+  font-weight: 700;
+}
+.submit-label em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--faint);
+  font-size: 12px;
+}
+.submit-field input,
+.submit-field textarea {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  transition: border-color var(--t-base), box-shadow var(--t-base), background var(--t-base);
+}
+.submit-field textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  line-height: 1.6;
+  resize: vertical;
+}
+.submit-field input:focus,
+.submit-field textarea:focus {
+  outline: none;
+  background: var(--card);
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+.submit-tip {
+  font-size: 12px;
+  color: var(--muted);
+}
+.submit-preview {
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+.submit-preview summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 600;
+}
+.submit-pre {
+  margin: 8px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--hl-pre-bg);
+  overflow-x: auto;
+  font-size: 12px;
+  line-height: 1.6;
+  max-height: 260px;
+}
+.submit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.submit-wait {
+  font-size: 13px;
+}
+.submit-foot {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  line-height: 1.7;
+}
+
+/* 弹窗正文里的区块改用顶部分隔线：外面已经是 .solution-modal-dialog 这张卡片了，
+   里面再套一层带描边和阴影的卡会显得很碎（页面上它是独立区块，才需要卡片感）。 */
+.solution-modal-body .community-block {
+  margin-top: 22px;
+  padding: 18px 0 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* ---------- markdown 渲染（官方题解 / 社区题解 / hint） ---------- */
+.markdown-body {
+  font-size: 14.5px;
+  line-height: 1.75;
   overflow-wrap: break-word;
+}
+.markdown-body > :first-child {
+  margin-top: 0;
 }
 .markdown-body h1,
 .markdown-body h2,
 .markdown-body h3,
 .markdown-body h4 {
-  margin: 1em 0 0.4em;
+  margin: 1.3em 0 0.45em;
   line-height: 1.35;
+  font-weight: 700;
 }
-.markdown-body h1 { font-size: 1.4em; }
-.markdown-body h2 { font-size: 1.25em; }
-.markdown-body h3 { font-size: 1.1em; }
+.markdown-body h1 { font-size: 1.45em; }
+.markdown-body h2 { font-size: 1.28em; }
+.markdown-body h3 { font-size: 1.12em; }
 .markdown-body h4 { font-size: 1em; }
 .markdown-body p {
-  margin: 0.4em 0;
+  margin: 0.5em 0;
 }
 .markdown-body a {
   color: var(--accent);
   text-decoration: none;
   border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  transition: border-color 0.2s ease, color 0.2s ease;
+  transition: border-color var(--t-base), color var(--t-base);
 }
 .markdown-body a:hover {
   border-bottom-color: var(--accent);
@@ -756,16 +1351,17 @@ tr:last-child td {
 .markdown-body code {
   background: var(--tag-bg);
   color: var(--tag-text);
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   padding: 1px 6px;
   font-size: 0.92em;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
 }
 .markdown-body pre {
   background: var(--hl-pre-bg, #f6f8fa);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px 14px;
+  border-radius: var(--r-md);
+  /* 右边多留一点：代码行贴到滚动条上会显得挤 */
+  padding: 13px 30px 13px 15px;
   overflow-x: auto;
   position: relative;
 }
@@ -784,8 +1380,8 @@ tr:last-child td {
   background: var(--card);
   color: var(--muted);
   border: 1px solid var(--border);
-  border-radius: 5px;
-  padding: 1px 7px;
+  border-radius: var(--r-sm);
+  padding: 1px 8px;
   font-size: 11px;
   font-family: inherit;
   cursor: pointer;
@@ -812,25 +1408,25 @@ tr:last-child td {
 }
 
 .markdown-body blockquote {
-  margin: 0.6em 0;
-  padding: 2px 14px;
-  border-left: 3px solid var(--border);
+  margin: 0.7em 0;
+  padding: 2px 15px;
+  border-left: 3px solid var(--border-strong);
   color: var(--muted);
 }
 /* > [!question] callout（由 markdown.js 生成） */
 .markdown-body .callout {
-  margin: 0.8em 0;
-  padding: 10px 14px 12px;
-  border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--border));
+  margin: 0.9em 0;
+  padding: 11px 15px 13px;
+  border: 1px solid var(--gold-line);
   border-left: 4px solid var(--gold);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--gold) 8%, transparent);
+  border-radius: var(--r-md);
+  background: var(--gold-soft);
 }
 .markdown-body .callout-title {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--gold);
 }
 .markdown-body .callout-icon {
@@ -846,29 +1442,53 @@ tr:last-child td {
 }
 .markdown-body ul,
 .markdown-body ol {
-  margin: 0.4em 0;
+  margin: 0.5em 0;
   padding-left: 1.6em;
+}
+.markdown-body li {
+  margin: 0.15em 0;
 }
 .markdown-body table {
   width: auto;
   max-width: 100%;
   border: 1px solid var(--border);
-  margin: 0.6em 0;
+  border-radius: var(--r-md);
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 0.7em 0;
+  overflow: hidden;
+  background: var(--card);
 }
 .markdown-body table th,
 .markdown-body table td {
-  border: 1px solid var(--border);
-  padding: 6px 12px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  padding: 7px 13px;
+  /* 把全局 th/td 的表格语义还原回来：全局那条是给题目表用的 */
+  position: static;
+  background: none;
+  color: inherit;
+  font-size: 13.5px;
+  letter-spacing: normal;
+  white-space: normal;
+  vertical-align: middle;
+}
+.markdown-body table th {
+  background: var(--surface);
+  font-weight: 700;
+}
+.markdown-body table tr:last-child td {
+  border-bottom: none;
 }
 .markdown-body img {
   max-width: 100%;
   height: auto;
-  border-radius: 8px;
+  border-radius: var(--r-md);
 }
 .markdown-body hr {
   border: none;
   border-top: 1px solid var(--border);
-  margin: 1em 0;
+  margin: 1.2em 0;
 }
 
 /* hint / C++ 代码块手风琴：仅点击标题时展开内容（类比 codeforces 的 Hint） */
@@ -878,20 +1498,26 @@ tr:last-child td {
 .hint,
 .code-details {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--r-md);
   margin: 8px 0;
   background: var(--card);
   overflow: hidden;
+  transition: border-color var(--t-base);
+}
+.hint:hover,
+.code-details:hover {
+  border-color: var(--border-strong);
 }
 .hint summary,
 .code-details summary {
   cursor: pointer;
-  padding: 8px 14px;
-  font-weight: 600;
+  padding: 9px 14px;
+  font-weight: 700;
   font-size: 13px;
   color: var(--accent);
   list-style: none;
   user-select: none;
+  transition: background var(--t-fast);
 }
 .hint summary::-webkit-details-marker,
 .code-details summary::-webkit-details-marker {
@@ -907,16 +1533,18 @@ tr:last-child td {
 }
 .hint summary:hover,
 .code-details summary:hover {
-  background: var(--tag-bg);
+  background: var(--accent-soft);
+}
+.hint[open] summary,
+.code-details[open] summary {
+  border-bottom: 1px solid var(--border);
 }
 .hint-body {
-  padding: 12px 14px;
-  border-top: 1px solid var(--border);
+  padding: 13px 15px;
 }
 .code-details pre {
   margin: 0;
   border: 0;
-  border-top: 1px solid var(--border);
   border-radius: 0;
 }
 
@@ -1007,7 +1635,7 @@ mjx-container {
 }
 mjx-container[display="true"] {
   display: block;
-  margin: 0.8em 0;
+  margin: 0.9em 0;
   text-align: center;
   overflow-x: auto;
   overflow-y: hidden;
@@ -1017,26 +1645,169 @@ mjx-container svg {
   color: var(--text);
 }
 
-footer {
-  margin-top: 28px;
-  text-align: center;
+/* ---------- 右下角「分享每日一题」悬浮按钮 ----------
+   常驻半透明（不挡正文），hover / 键盘聚焦时变清晰，点击即复制分享文本。
+   注意与题解弹窗的层级：z-index 取 80 —— 在 GitHub 角标（60）之上、
+   弹窗（1000 / 1100）之下，弹窗打开时会被正常盖住。 */
+.share-daily {
+  position: fixed;
+  right: 22px;
+  /* 比 22 大一点：手机浏览器底部常有工具栏，别让按钮压在它下面 */
+  bottom: 30px;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  /* 平时虚化：醒目的按钮会抢正文的注意力，这里靠 opacity 退到背景里 */
+  opacity: 0.5;
+  transition: opacity 0.25s ease, color 0.25s ease, border-color 0.25s ease,
+    background 0.25s ease, transform 0.15s ease, box-shadow 0.25s ease;
+}
+.share-btn:hover,
+.share-btn:focus-visible {
+  opacity: 1;
+  color: var(--accent);
+  border-color: var(--accent-line);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+.share-icon {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+  flex: none;
+}
+/* 复制反馈：成功/失败都直接把按钮点亮，颜色本身就是提示 */
+.share-btn.done {
+  opacity: 1;
+  color: var(--on-accent);
+  background: var(--accent-fill);
+  border-color: var(--accent-fill);
+}
+.share-btn.fail {
+  opacity: 1;
+  color: var(--gold);
+  border-color: var(--gold);
+}
+/* 悬浮说明：只有 hover / 聚焦时才出现 */
+.share-tip {
+  max-width: 250px;
+  padding: 7px 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--card);
   color: var(--muted);
   font-size: 12px;
+  line-height: 1.5;
+  text-align: right;
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.share-daily:hover .share-tip,
+.share-daily:focus-within .share-tip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---------- 页脚 ---------- */
+footer {
+  margin-top: 34px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  color: var(--faint);
+  font-size: 12.5px;
+  line-height: 1.9;
+}
+footer code {
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.95em;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 1px 6px;
 }
 footer a {
   color: var(--muted);
 }
 
+/* =============================================================================
+   断点
+   ============================================================================= */
+
+/* 690px 以下：表格收紧成一列信息块（日期并入题目上方），控件缩到可点即可 */
+@media (max-width: 690px) {
+  .wrap {
+    padding: 24px 14px 56px;
+  }
+  header h1 {
+    font-size: 24px;
+  }
+  header p {
+    font-size: 12.5px;
+  }
+
+  /* 日期列在窄屏没有独立成列的余地：藏掉后它仍以 title 形式挂在题名上 */
+  .cell-date {
+    display: none;
+  }
+  /* 去掉定宽：剩下的 来源 / 题目 / 题解 由浏览器按内容分配 */
+  .cell-source {
+    width: auto;
+  }
+  .cell-solution {
+    width: 1%;
+  }
+  th,
+  td {
+    padding: 10px 12px;
+  }
+  th {
+    font-size: 11.5px;
+    letter-spacing: 0.5px;
+  }
+  .table-wrap {
+    max-height: 68vh;
+  }
+}
+
 @media (max-width: 600px) {
+  /* 主题开关回到文档流（标题下方居中），窄屏没有并排的空间 */
   .theme-toggle {
     position: static;
-    margin-top: 12px;
+    margin: 0 auto 14px;
+    display: flex;
+    width: fit-content;
+  }
+  header h1 {
+    font-size: 22px;
   }
 
   /* 手机上角标也缩一号（底座边缘是虚的，视觉尺寸比盒子小一圈），别压到标题 */
   .gh-corner {
-    top: 12px;
-    right: 12px;
+    top: 10px;
+    right: 10px;
     width: 44px;
     height: 44px;
   }
@@ -1044,16 +1815,8 @@ footer a {
     width: 17px;
     height: 17px;
   }
-  th:nth-child(1),
-  td:nth-child(1) {
-    display: none; /* 手机上隐藏日期列 */
-  }
-  th,
-  td {
-    padding: 10px;
-  }
 
-  /* 手机端工具栏改为纵向堆叠，日期/标签面板在文档流内全宽展开，
+  /* 工具栏：600px 以下改为纵向堆叠，日期/标签面板在文档流内全宽展开，
      避免 absolute 定位（right: 0 锚在按钮上）把面板顶出屏幕左侧。 */
   .toolbar {
     flex-direction: column;
@@ -1076,330 +1839,27 @@ footer a {
     width: auto;
     max-width: none;
     margin-top: 10px;
-    padding: 12px;
+    padding: 14px;
     box-shadow: none;
   }
 
+  .latest {
+    padding: 18px 18px 20px;
+  }
+  .latest .title {
+    font-size: 19px;
+  }
   .latest-actions {
     align-items: stretch;
   }
   .latest-actions .btn {
     flex: 1 1 auto;
-    text-align: center;
   }
-}
 
-/* ---------- 社区区块（社区题解 / 讨论 / 投稿入口） ---------- */
-.community-block {
-  margin-top: 22px;
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
-}
-.community-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  font-size: 14px;
-  margin-bottom: 10px;
-}
-.community-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  border-radius: 10px;
-  background: var(--tag-bg);
-  color: var(--tag-text);
-  font-size: 12px;
-  font-weight: 600;
-}
-/* 标题旁标注「这是哪道题」，只用于页面底部那份评论区 */
-.community-sub {
-  font-weight: 400;
-  font-size: 12px;
-  color: var(--muted);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-/* 区块标题右侧的外链，例如「全部讨论 ↗」 */
-.community-head-link {
-  margin-left: auto;
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--accent);
-  white-space: nowrap;
-}
-.community-head-link:hover {
-  text-decoration: underline;
-}
-.community-submit-link {
-  margin-left: auto;
-  border: none;
-  background: none;
-  color: var(--accent);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 6px;
-}
-.community-submit-link:hover {
-  text-decoration: underline;
-}
-.community-hint {
-  font-size: 13px;
-  line-height: 1.7;
-}
-.community-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.community-item {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-  background: var(--bg);
-}
-.community-item-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 9px 12px;
-  border: none;
-  background: none;
-  color: var(--text);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-  text-align: left;
-}
-.community-item-head:hover {
-  background: var(--tag-bg);
-}
-.community-avatar {
-  border-radius: 50%;
-  flex: none;
-  background: var(--border);
-}
-.community-author {
-  font-weight: 600;
-  white-space: nowrap;
-}
-.community-title {
-  color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.community-caret {
-  margin-left: auto;
-  color: var(--muted);
-  font-size: 12px;
-  flex: none;
-}
-.community-item-body {
-  padding: 4px 14px 14px;
-  border-top: 1px solid var(--border);
-}
-.community-item-foot {
-  margin-top: 10px;
-  font-size: 12px;
-}
-.giscus-host {
-  margin-top: 4px;
-  min-height: 60px;
-}
-.site-cta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 24px 0 8px;
-}
+  .community-block {
+    padding: 16px 16px 18px;
+  }
 
-/* ---------- 投稿生成器 ---------- */
-.submit-modal {
-  z-index: 1100; /* 需要盖在题解弹窗（z-index: 1000）之上 */
-}
-.submit-lead {
-  margin: 0 0 16px;
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.7;
-}
-.submit-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-.submit-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 14px;
-}
-.submit-label {
-  font-size: 13px;
-  font-weight: 600;
-}
-.submit-label em {
-  font-style: normal;
-  font-weight: 400;
-  color: var(--muted);
-  font-size: 12px;
-}
-.submit-field input,
-.submit-field textarea {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg);
-  color: var(--text);
-  font: inherit;
-  font-size: 13px;
-}
-.submit-field textarea {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  line-height: 1.6;
-  resize: vertical;
-}
-.submit-field input:focus,
-.submit-field textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-.submit-tip {
-  font-size: 12px;
-  color: var(--muted);
-}
-.submit-preview {
-  margin-bottom: 14px;
-  font-size: 13px;
-}
-.submit-preview summary {
-  cursor: pointer;
-  color: var(--muted);
-}
-.submit-pre {
-  margin: 8px 0 0;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--hl-pre-bg);
-  overflow-x: auto;
-  font-size: 12px;
-  line-height: 1.6;
-  max-height: 260px;
-}
-.submit-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-}
-.submit-wait {
-  font-size: 13px;
-}
-.submit-foot {
-  margin-top: 16px;
-  line-height: 1.7;
-}
-.btn[disabled] {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ---------- 右下角「分享每日一题」悬浮按钮 ----------
-   常驻半透明（不挡正文），hover / 键盘聚焦时变清晰，点击即复制分享文本。
-   注意与题解弹窗的层级：z-index 取 80 —— 在 GitHub 角标（60）之上、
-   弹窗（1000 / 1100）之下，弹窗打开时会被正常盖住。 */
-.share-daily {
-  position: fixed;
-  right: 20px;
-  /* 比 20 大一点：手机浏览器底部常有工具栏，别让按钮压在它下面 */
-  bottom: 28px;
-  z-index: 80;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-.share-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 9px 15px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--muted);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.4px;
-  cursor: pointer;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-  /* 平时虚化：醒目的按钮会抢正文的注意力，这里靠 opacity 退到背景里 */
-  opacity: 0.45;
-  transition: opacity 0.25s ease, color 0.25s ease, border-color 0.25s ease,
-    background 0.25s ease, transform 0.15s ease;
-}
-.share-btn:hover,
-.share-btn:focus-visible {
-  opacity: 1;
-  color: var(--accent);
-  border-color: var(--accent);
-  transform: translateY(-1px);
-}
-.share-icon {
-  width: 15px;
-  height: 15px;
-  fill: currentColor;
-  flex: none;
-}
-/* 复制反馈：成功/失败都直接把按钮点亮，颜色本身就是提示 */
-.share-btn.done {
-  opacity: 1;
-  color: #fff;
-  background: var(--accent);
-  border-color: var(--accent);
-}
-.share-btn.fail {
-  opacity: 1;
-  color: var(--gold);
-  border-color: var(--gold);
-}
-/* 悬浮说明：只有 hover / 聚焦时才出现 */
-.share-tip {
-  max-width: 240px;
-  padding: 6px 11px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.5;
-  text-align: right;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-  opacity: 0;
-  transform: translateY(4px);
-  pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-.share-daily:hover .share-tip,
-.share-daily:focus-within .share-tip {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-@media (max-width: 600px) {
   .share-daily {
     right: 14px;
     bottom: 18px;
@@ -1409,7 +1869,7 @@ footer a {
     display: none;
   }
   .share-btn {
-    padding: 11px;
+    padding: 12px;
   }
   .share-icon {
     width: 17px;
@@ -1417,6 +1877,23 @@ footer a {
   }
   .share-tip {
     max-width: 190px;
+  }
+
+  .solution-modal {
+    padding: 12px 10px;
+  }
+  .solution-modal-dialog {
+    max-height: 90vh;
+    border-radius: var(--r-lg);
+  }
+  .solution-modal-head {
+    padding: 13px 15px;
+  }
+  .solution-modal-body {
+    padding: 16px 16px 20px;
+  }
+  .markdown-body {
+    font-size: 14px;
   }
 }
 
