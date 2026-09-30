@@ -30,7 +30,9 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKeydown));
           <div class="solution-modal-body">
             <SolutionPanel :problem="problem" />
             <CommunitySolutions :problem="problem" />
-            <CommentSection :problem="problem" />
+            <!-- giscus 的 specific + term 只在脚本首次初始化时读取。
+                 按日期重建组件，避免连续点击不同题解时复用旧 iframe。 -->
+            <CommentSection :key="problem.date" :problem="problem" />
           </div>
         </div>
       </div>

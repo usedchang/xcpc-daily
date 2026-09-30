@@ -57,12 +57,33 @@ function stopWatching() {
 }
 
 /**
+ * 清掉页面上不属于本容器的 giscus 容器（`.giscus`）。
+ *
+ * client.js 找挂载点用的是 document.querySelector(".giscus") —— 全文档**第一个**，
+ * 而不是它自己那个 `<script>` 的父节点（源码：`d = document.querySelector(".giscus")`，
+ * 之后 `d.appendChild(iframe)` 或 `m.insertAdjacentElement("afterend", d)`）。
+ * 于是页面上只要还留着上一份容器 —— 另一个 CommentSection，或者正在跑退场动画、
+ * 还没卸载的那份 —— 新 iframe 就会被插进旧容器里：旧的那份显示成这一题的讨论，
+ * 自己的容器永远空着，8 秒后还会误报「评论区加载失败」（看着像被广告拦截）。
+ *
+ * 挂载前先扫一遍：谁最后挂载谁拿到容器，不再依赖两份组件谁先谁后的运气。
+ * 代价是「同页最多一个 CommentSection」——这条由调用方保证（见 App.vue 的
+ * bottomProblem：弹窗打开时页面底部那份整个让位）；违反它会把别处的 iframe 拆掉。
+ */
+function dropForeignContainers(el) {
+  document.querySelectorAll(".giscus").forEach((node) => {
+    if (!el.contains(node)) node.remove();
+  });
+}
+
+/**
  * 挂载 giscus。
  *
- * 两个必须注意的点：
+ * 三个必须注意的点：
  *  1. 站点是 hash 路由，题目没有独立 pathname，所以 mapping 用 specific + term=problem-<date>；
  *  2. giscus 不支持动态改 term，换题目时必须整块重建脚本（清空容器再插 script），
- *     这也是这里不用 v-html/模板写死 script 标签的原因。
+ *     这也是这里不用 v-html/模板写死 script 标签的原因；
+ *  3. 挂载点是 client.js 自己在全文档里挑的，不一定是我们的容器（见 dropForeignContainers）。
  */
 function mount() {
   window.clearTimeout(iframeTimer);
@@ -77,9 +98,16 @@ function mount() {
 
   el.innerHTML = "";
   setState("loading");
+  dropForeignContainers(el);
 
   observer = new MutationObserver(() => {
-    if (el.querySelector("iframe")) markReady();
+    if (el.querySelector("iframe")) {
+      markReady();
+      return;
+    }
+    // iframe 又被摘走了（容器被别处抢走 / 被清理）：状态机不能停在 ready，
+    // 否则页面上留下的是一块没有任何提示的空白 —— 正是这个状态机要消灭的东西。
+    if (state.value === "ready") fail();
   });
   observer.observe(el, { childList: true, subtree: true });
 

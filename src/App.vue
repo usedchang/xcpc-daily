@@ -65,11 +65,18 @@ const publishedData = computed(() =>
 
 const latest = computed(() => publishedData.value[0] || null);
 
-// 底部「今日题目讨论」跟着最近一题走。若弹窗里打开的正是同一道题，
-// 就让弹窗那份独占：否则同一个 giscus term 会在页面上同时挂两个 iframe。
-const bottomProblem = computed(() =>
-  modalProblem.value && modalProblem.value.date === latest.value?.date ? null : latest.value
-);
+// 底部「今日题目讨论」跟着最近一题走，但**只在没有弹窗时存在**。
+//
+// 不能让它和弹窗里那份同时活着，原因不在「term 重复」，而在 giscus 的 client.js：
+// 它找挂载点用的是 document.querySelector(".giscus")（全文档第一个，而不是它自己那个
+// <script> 的父节点），所以页面上只要有第二份容器，后加载的那份就会把 iframe 插进
+// 第一份的容器里 —— 页面底部会显示成弹窗那道题的讨论，弹窗自己的评论区永远是空的
+// （8 秒后报「评论区加载失败」，看起来像被广告拦截了）。
+// 一份 .giscus 容器只能有一个活的实例，这条是 client.js 的硬约束。
+//
+// 让位没有信息损失：弹窗的遮罩铺满整个视口，底部那份本来也看不见；
+// 关掉弹窗它会按当天题目整块重建（CommentSection.vue 的 mount）。
+const bottomProblem = computed(() => (modalProblem.value ? null : latest.value));
 
 // ------- 日历筛选数据：仅已发布日期 -------
 const dates = computed(() =>
@@ -194,9 +201,8 @@ onBeforeUnmount(() => {
 
     <!-- 页面底部的讨论区，跟着「今日题目」走：一进站就能参与今天这题的讨论。
          每题各自的讨论仍在题解弹窗里（SolutionModal -> CommentSection）。
-         两者用的是同一个 discussion（term 相同），所以弹窗打开同一道题时，
-         底部这份会整个让位（bottomProblem 为 null）——同页挂两个 giscus iframe
-         会让同一个帖子被渲染两遍，且两边的评论不会互相同步。
+         弹窗一打开，底部这份整个让位（bottomProblem 为 null）——原因见上面那段注释：
+         giscus 的挂载点全文档只有一个，两份同时存在必然互相抢容器。
          「全部讨论」外链挂在它的标题右侧（all-discussions-link）。 -->
     <CommentSection
       v-if="bottomProblem"
