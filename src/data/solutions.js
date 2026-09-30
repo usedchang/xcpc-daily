@@ -116,7 +116,9 @@ function loadSolutionIndex() {
   if (!solutionIndexPromise) {
     solutionIndexPromise = (async () => {
       try {
-        const res = await fetch("./solutions/index.json");
+        // no-store：GitHub Pages 对这些 json 是 max-age=600，缓存住清单会让
+        // 「新加的题解」十分钟内不被发现（与 problems.js 里的说明一致）
+        const res = await fetch("./solutions/index.json", { cache: "no-store" });
         if (!res.ok) return null;
         const data = await res.json();
         return data && typeof data.months === "object" ? data.months : null;
@@ -167,7 +169,7 @@ export async function loadSolutionText(problem) {
 
     for (const url of candidates) {
       try {
-        const res = await fetch(url);
+        const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) continue;
         const body = await res.text();
         if (looksLikeHtmlPage(body, res.headers?.get?.("content-type") || "")) {

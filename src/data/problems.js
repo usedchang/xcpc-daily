@@ -80,7 +80,8 @@ function mergeByDate(base, extra) {
 }
 
 async function fetchJson(url, label) {
-  const res = await fetch(url);
+  // no-store：见 fetchIndexMonths 的说明——月文件也要绕过 10 分钟浏览器缓存
+  const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return toItems(safeParseJson(await res.text(), label), label);
 }
@@ -88,10 +89,15 @@ async function fetchJson(url, label) {
 /**
  * 清单里的月份。清单不存在（例如没跑过 build 的老部署）时返回空数组，
  * 调用方会退回「只读老 data.json」。
+ *
+ * `cache: "no-store"` 是必须的：GitHub Pages 给这些 json 的响应头是
+ * `Cache-Control: max-age=600`，浏览器会缓存 10 分钟。清单一旦被缓存，
+ * 「push 完刷新即生效」就会退化成「等十分钟才生效」，页面还会拿着旧清单去
+ * fetch 已经不存在的月文件。数据文件同样走 no-store（见 fetchJson）。
  */
 async function fetchIndexMonths() {
   try {
-    const res = await fetch("./data/index.json");
+    const res = await fetch("./data/index.json", { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     const months = Array.isArray(data?.months) ? data.months : [];
