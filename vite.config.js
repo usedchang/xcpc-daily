@@ -50,6 +50,34 @@ export default defineConfig(async () => {
     // dev 下监听月文件改动并在终端提示，build 时把 index.json 带进 dist。
     plugins: [vue(), ...(indexPlugin ? [indexPlugin] : [])],
     base: "./",
+    build: {
+      rollupOptions: {
+        output: {
+          /**
+           * 入口 JS/CSS 用固定文件名（index.js / index.css），不加内容哈希。
+           *
+           * 原因：GitHub Pages 的 CDN 是多节点、且对同一路径可能同时返回 200 与 404
+           * （实测同一秒内两个请求结果相反）。内容哈希意味着每次部署都会让旧文件名
+           * 永久消失，节点只要滞后一点，index.html 引用的文件就 404，整页白屏；
+           * 连续几次部署会把这个窗口放大。
+           *
+           * 固定文件名后，新旧产物路径完全相同：节点滞后最多是"还是上一版"，
+           * 不会再出现"HTML 引用的文件不存在"。题解等懒加载分块仍保留哈希
+           * （它们只在点击时按需加载，且不做入口）。
+           *
+           * 内容更新靠：index.html 每次都会被重新拉取（同 URL 改名配合
+           * closeBundle 里的 ?v= 版本号），数据文件本身是 no-store。
+           */
+          entryFileNames: "assets/index.js",
+          assetFileNames: (info) => {
+            const name = info.names?.[0] || info.name || "";
+            if (/\.css$/i.test(name)) return "assets/index.css";
+            return "assets/[name]-[hash][extname]";
+          },
+          chunkFileNames: "assets/[name]-[hash].js",
+        },
+      },
+    },
     define: {
       // mathjax-full 的 version.js 在浏览器里会 eval('require') 拿版本号，
       // 这里直接注入 PACKAGE_VERSION 绕过那段 node-only 代码。
