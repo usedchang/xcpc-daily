@@ -1,10 +1,10 @@
 [
 {
   "date": "2026-10-01",
-  "source": "AtCoder Beginner Contest 361",
-  "title": "x = a^b",
-  "link": "https://atcoder.jp/contests/abc361/tasks/abc361_f",
-  "difficulty": "1600",
-  "tags": ["math"]
+  "source": "Luogu P8819",
+  "title": "P8819 [CSP-S 2022] 星战",
+  "link": "https://www.luogu.com.cn/problem/P8819",
+  "difficulty": "省选/NOI-",
+  "tags": ["graphs"]
 }
 ]
