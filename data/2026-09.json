@@ -1,0 +1,189 @@
+[
+{
+  "date": "2026-09-08",
+  "source": "ACM-HK Programming Contest 2023",
+  "title": "B. Xor is Add",
+  "link": "https://qoj.ac/contest/3871/problem/18689",
+  "difficulty": "1300",
+  "tags": ["bitmasks", "constructive"]
+},
+{
+  "date": "2026-09-09",
+  "source": "Northern Eurasia Camp 2026. Day 2",
+  "title": "A. Arithmetic Progression",
+  "link": "https://qoj.ac/contest/4070/problem/20004",
+  "difficulty": "1800",
+  "tags": ["bitmasks", "constructive"],
+  "hints": ["f(x)的下界是a,思考何时取到下界?", "当(ax+b)&a=0时取到下界,思考如何构造出 (ax+b)&a=0?"]
+},
+{
+  "date": "2026-09-10",
+  "source": "Luogu P8572",
+  "title": "P8572 [JRKSJ R6] Eltaw",
+  "link": "https://www.luogu.com.cn/problem/P8572",
+  "difficulty": "1800",
+  "tags": ["sqrt trick"],
+  "hints": ["直接暴力的复杂度是多少?对所有区间记忆化的复杂度是多少?", "能否按数据范围分别使用两种不同算法以此平衡复杂度?"]
+},
+{
+  "date": "2026-09-11",
+  "source": "The 2nd Universal Cup. Stage 2: SPb",
+  "title": "A. Mixed Messages",
+  "link": "https://qoj.ac/contest/1356/problem/7175/statement/default",
+  "difficulty": "ucup 前中期",
+  "tags": ["dp"]
+},
+{
+  "date": "2026-09-12",
+  "source": "The 4th Universal Cup. Stage 6: Grand Prix of Shenyang",
+  "title": "平方王国",
+  "link": "https://qoj.ac/contest/2641/problem/14940/statement/zh_cn",
+  "difficulty": "区域赛铜牌",
+  "tags": ["binary search", "math"]
+},
+{
+  "date": "2026-09-13",
+  "source": "[ICPC2023 Nanjing R] ICPC2023 区域赛南京站重现赛",
+  "title": "P13957 [ICPC 2023 Nanjing R] 背包",
+  "link": "https://www.luogu.com.cn/problem/P13957",
+  "difficulty": "区域赛铜牌",
+  "tags": ["dp", "greedy"]
+},
+{
+  "date": "2026-09-14",
+  "source": "Codeforces Round 146 (Div. 1)",
+  "title": "A. LCM Challenge",
+  "link": "https://codeforces.com/problemset/problem/235/A",
+  "difficulty": "1600",
+  "tags": ["number theory"]
+},
+{
+  "date": "2026-09-15",
+  "source": "2021 ICPC Gran Premio de Mexico 2da Fecha",
+  "title": "K. K-Binary Repetitive Numbers",
+  "link": "https://codeforces.com/gym/103306/problem/K",
+  "difficulty": "1700",
+  "tags": ["count", "math"],
+  "hints": ["正向思考很困难，能否对不满足情况计数?", "对于某个串考虑是长度是他的因数的那些串与他有什么关系?"]
+},
+{
+  "date": "2026-09-16",
+  "source": "Codeforces Round 1028 (Div.2)",
+  "title": "D.Gellyfish and Camellia Japonica",
+  "link": "https://codeforces.com/contest/2116/problem/D",
+  "difficulty": "2100",
+  "tags": ["graphs", "constructive", "greedy"]
+},
+{
+  "date": "2026-09-17",
+  "source": "Codeforces Round 941 (Div. 1)",
+  "title": "A. Everything Nim",
+  "link": "https://codeforces.com/problemset/problem/1965/A",
+  "difficulty": "1400",
+  "tags": ["games"]
+},
+{
+  "date": "2026-09-18",
+  "source": "Codeforces Round 1002 (Div. 2)",
+  "title": "D. Graph and Graph",
+  "link": "https://codeforces.com/problemset/problem/2059/D",
+  "difficulty": "1900",
+  "tags": ["graphs", "data structures", "greedy", "shortest paths"]
+},
+{
+  "date": "2026-09-19",
+  "source": "Luogu P4038",
+  "title": "P4038 [CERC 1995] John's Trip",
+  "link": "https://www.luogu.com.cn/problem/P4038",
+  "difficulty": "1700",
+  "tags": ["graphs"]
+},
+{
+  "date": "2026-09-20",
+  "source": "The 2021 ICPC China Zhejiang Provincial Programming Contest (18th)",
+  "title": "Fair Distribution",
+  "link": "https://qoj.ac/problem/10892",
+  "difficulty": "省赛中后期",
+  "tags": ["sqrt trick"]
+},
+{
+  "date": "2026-09-21",
+  "source": "The 4th Universal Cup. Extra Stage 5: Shenzhen",
+  "title": "暴击",
+  "link": "https://qoj.ac/contest/3588/problem/17764/statement/zh_cn",
+  "difficulty": "邀请赛前期",
+  "tags": ["dp"]
+},
+{
+  "date": "2026-09-22",
+  "source": "Luogu P4151",
+  "title": "[WC2011] 最大 XOR 和路径",
+  "link": "https://www.luogu.com.cn/problem/P4151",
+  "difficulty": "省选/NOI-",
+  "tags": ["graphs"]
+},
+{
+  "date": "2026-09-23",
+  "source": "Luogu P11872",
+  "title": "[威海市赛 2024] 异或盒子 1",
+  "link": "https://www.luogu.com.cn/problem/P11872",
+  "difficulty": "省选/NOI-",
+  "tags": ["data structures", "bitmasks"]
+},
+{
+  "date": "2026-09-24",
+  "source": "第十九届吉林省大学生程序设计竞赛",
+  "title": "Hidden k-Tuples",
+  "link": "https://qoj.ac/contest/3786/problem/18371/statement/zh_cn",
+  "difficulty": "省赛中后期",
+  "tags": ["interactive"]
+},
+{
+  "date": "2026-09-25",
+  "source": "CCPC 2025 河北省赛",
+  "title": "棋盘",
+  "link": "https://qoj.ac/contest/2629/problem/15230",
+  "difficulty": "省赛前中期",
+  "tags": ["games"]
+},
+{
+  "date": "2026-09-26",
+  "source": "GDCPC 2023",
+  "title": "Computational Geometry",
+  "link": "https://qoj.ac/contest/1247/problem/6517/statement/zh_cn",
+  "difficulty": "省赛中后期",
+  "tags": ["geometry"]
+},
+{
+  "date": "2026-09-27",
+  "source": "FJCPC 2025",
+  "title": "众数",
+  "link": "https://qoj.ac/contest/2182/problem/12376",
+  "difficulty": "邀请赛前中期",
+  "tags": ["greedy"]
+},
+{
+  "date": "2026-09-28",
+  "source": "JSCPC/GDCPC 2025",
+  "title": "Monetary System",
+  "link": "https://qoj.ac/contest/2058/problem/11379/statement/zh_cn",
+  "difficulty": "省赛中期",
+  "tags": ["dp", "math"]
+},
+{
+  "date": "2026-09-29",
+  "source": "GDCPC 2023",
+  "title": "New but Nostalgic Problem",
+  "link": "https://qoj.ac/contest/1247/problem/6516/statement/zh_cn",
+  "difficulty": "省赛中期",
+  "tags": ["strings"]
+},
+{
+  "date": "2026-09-30",
+  "source": "The 2nd Universal Cup. Stage 16: Run Twice",
+  "title": "Bracket-and-bar Sequences",
+  "link": "https://qoj.ac/contest/1465/problem/4824",
+  "difficulty": "2100",
+  "tags": ["run twice"]
+}
+]

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "data:index": "node scripts/data-index.mjs"
   },
   "dependencies": {
     "dompurify": "^3.4.15",

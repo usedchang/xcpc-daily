@@ -7,7 +7,8 @@ name: 校验社区投稿
 on:
   pull_request:
     paths:
-      - "solutions/community/**"
+      - "solutions/**"
+      - "data/**"
       - "data.json"
       - "src/**"
       - ".github/**"

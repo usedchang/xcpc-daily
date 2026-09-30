@@ -1232,6 +1232,110 @@ footer a {
   cursor: not-allowed;
 }
 
+/* ---------- 右下角「分享每日一题」悬浮按钮 ----------
+   常驻半透明（不挡正文），hover / 键盘聚焦时变清晰，点击即复制分享文本。
+   注意与题解弹窗的层级：z-index 取 80 —— 在 GitHub 角标（60）之上、
+   弹窗（1000 / 1100）之下，弹窗打开时会被正常盖住。 */
+.share-daily {
+  position: fixed;
+  right: 20px;
+  /* 比 20 大一点：手机浏览器底部常有工具栏，别让按钮压在它下面 */
+  bottom: 28px;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 15px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  /* 平时虚化：醒目的按钮会抢正文的注意力，这里靠 opacity 退到背景里 */
+  opacity: 0.45;
+  transition: opacity 0.25s ease, color 0.25s ease, border-color 0.25s ease,
+    background 0.25s ease, transform 0.15s ease;
+}
+.share-btn:hover,
+.share-btn:focus-visible {
+  opacity: 1;
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.share-icon {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+  flex: none;
+}
+/* 复制反馈：成功/失败都直接把按钮点亮，颜色本身就是提示 */
+.share-btn.done {
+  opacity: 1;
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.share-btn.fail {
+  opacity: 1;
+  color: var(--gold);
+  border-color: var(--gold);
+}
+/* 悬浮说明：只有 hover / 聚焦时才出现 */
+.share-tip {
+  max-width: 240px;
+  padding: 6px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: right;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.share-daily:hover .share-tip,
+.share-daily:focus-within .share-tip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 600px) {
+  .share-daily {
+    right: 14px;
+    bottom: 18px;
+  }
+  /* 窄屏只留图标，省得盖住正文 */
+  .share-label {
+    display: none;
+  }
+  .share-btn {
+    padding: 11px;
+  }
+  .share-icon {
+    width: 17px;
+    height: 17px;
+  }
+  .share-tip {
+    max-width: 190px;
+  }
+}
+
 @media (max-width: 640px) {
   .submit-grid {
     grid-template-columns: 1fr;

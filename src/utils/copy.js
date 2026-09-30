@@ -1,5 +1,5 @@
 /**
- * 代码块右上角 copy 按钮的共享处理。
+ * 复制到剪贴板的共享实现。
  *
  * 说明：SolutionPanel.vue 里原本内联了一份等价实现，这里抽出来给社区题解复用。
  * SolutionPanel 暂未改动（避免为社区功能引入回归），后续可一并切换到这个模块。
@@ -20,6 +20,24 @@ function fallbackCopy(text, done) {
   } catch (e) {
     done();
   }
+}
+
+/**
+ * 复制任意文本，两种通道都失败时返回 false（调用方据此提示「请手动复制」）。
+ * @param {string} text
+ * @returns {Promise<boolean>}
+ */
+export async function copyText(text) {
+  const value = String(text ?? "");
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(value);
+      return true;
+    } catch (e) {
+      // 继续走 execCommand 兜底
+    }
+  }
+  return new Promise((resolve) => fallbackCopy(value, () => resolve(true)));
 }
 
 /** 复制按钮所在的 <pre> 里的代码，并给按钮 1.2s 的 "copied" 反馈。 */

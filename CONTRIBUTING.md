@@ -44,7 +44,7 @@
 
 - 目录：`solutions/community/`
 - 文件名：`YYYY-MM-DD-<你的GitHub用户名>.md`
-  - 日期必须是 `data.json` 里已存在、且不晚于今天的题目；
+  - 日期必须是 `data/<年-月>.json` 里已存在、且不晚于今天的题目；
   - **文件名里的用户名必须与提交 PR 的 GitHub 账号一致**（防止冒名顶替）；想用别的展示名，写在 front matter 的 `author` 里。
 
 模板见 [`solutions/community/_TEMPLATE.md`](solutions/community/_TEMPLATE.md)（以 `_` 开头，不会被站点加载）。
@@ -78,7 +78,7 @@ CI（`.github/workflows/review-solution.yml`）会跑同一份脚本，额外校
 
 ## 不要做什么
 
-- 不要修改 `data.json`（题目数据由维护者维护）；
-- 不要修改 `solutions/` 根目录下的官方题解；
+- 不要修改 `data/`（题目数据由维护者维护）；
+- 不要修改 `solutions/<年-月>/` 下的官方题解；
 - 不要修改 `src/`、`.github/`；
 - 不要在正文里塞 `<script>`、`<iframe>`、`onclick=` 之类的内容——CI 会拦，前端渲染也会 sanitize。

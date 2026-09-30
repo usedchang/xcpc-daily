@@ -9,6 +9,7 @@ import ProblemTable from "./components/ProblemTable.vue";
 import SolutionModal from "./components/SolutionModal.vue";
 import SubmitSolution from "./components/SubmitSolution.vue";
 import CommentSection from "./components/CommentSection.vue";
+import ShareDaily from "./components/ShareDaily.vue";
 import { useUrlState } from "./composables/useState.js";
 import { useSubmitModal } from "./composables/useSubmitModal.js";
 import { COMMUNITY } from "./config/community.js";
@@ -154,7 +155,7 @@ onMounted(async () => {
     />
 
     <ProblemTable v-if="!loadError" :problems="filtered" />
-    <p v-else class="muted">加载 data.json 失败：{{ loadError }}。请通过 dev server 或 GitHub Pages 访问。</p>
+    <p v-else class="muted">加载题目数据失败：{{ loadError }}。请检查 <code>data/</code> 下的月份 json 是否合法，并通过 dev server 或 GitHub Pages 访问。</p>
 
     <!-- 投稿入口：暂时由 COMMUNITY.submitEnabled 关掉（改回 true 即恢复，不是删功能） -->
     <div v-if="COMMUNITY.submitEnabled" class="site-cta">
@@ -177,8 +178,11 @@ onMounted(async () => {
     <SolutionModal />
     <SubmitSolution />
 
+    <!-- 右下角悬浮的分享按钮：一键复制「今天 + 昨天」两道题的链接（见 ShareDaily.vue） -->
+    <ShareDaily :problems="publishedData" :today="todayStr" />
+
     <footer>
-      交流 QQ 群号：<code>1036787694</code> · 数据文件 <code>data.json</code> · 部署由 GitHub Actions 自动构建
+      交流 QQ 群号：<code>1036787694</code> · 数据文件 <code>data/&lt;年-月&gt;.json</code> · 部署由 GitHub Actions 自动构建
     </footer>
   </div>
 </template>

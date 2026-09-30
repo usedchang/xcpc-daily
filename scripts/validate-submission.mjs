@@ -10,11 +10,11 @@
  *
  * 约定（与 src/data/community.js 保持同步）：
  *   - 投稿只能放在 solutions/community/ 下，文件名 `YYYY-MM-DD-<handle>.md`
- *   - 顶部 front matter 必须能解析，且 date 必须是 data.json 里已存在的题目
- *   - 不得顺手改动 data.json / 官方题解 / src / .github
+ *   - 顶部 front matter 必须能解析，且 date 必须是 data/<年-月>.json 里已存在的题目
+ *   - 不得顺手改动题目数据 / 官方题解 / src / .github
  */
-import { readFileSync, statSync } from "node:fs";
-import { resolve, dirname } from "node:path";
+import { readFileSync, statSync, readdirSync } from "node:fs";
+import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseFrontMatter } from "../src/utils/frontmatter.js";
 
@@ -22,13 +22,19 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "..");
 
 const SUBMISSIONS_DIR = "solutions/community/";
+const DATA_DIR = "data";
+const MONTH_FILE_RE = /^\d{4}-\d{2}\.json$/;
 const MAX_BYTES = 256 * 1024;
 const FILE_RE = /^(\d{4}-\d{2}-\d{2})-(.+)\.md$/;
 
 // 投稿 PR 里不该出现的改动
 const PROTECTED = [
-  { test: (p) => p === "data.json", why: "不要修改 data.json（题目数据由维护者维护）" },
-  { test: (p) => /^solutions\/[^/]+\.md$/i.test(p), why: "不要修改官方题解（solutions/ 根目录下的 md）" },
+  { test: (p) => p === "data.json" || p.startsWith(`${DATA_DIR}/`), why: "不要修改题目数据（data/ 由维护者维护）" },
+  {
+    test: (p) => /^solutions\/\d{4}-\d{2}\/[^/]+$/i.test(p),
+    why: "不要修改官方题解（solutions/<年-月>/ 下的文件）",
+  },
+  { test: (p) => /^solutions\/[^/]+\.md$/i.test(p), why: "不要修改官方题解（旧布局：solutions/ 根目录下的 md）" },
   { test: (p) => p.startsWith("src/"), why: "不要修改前端源码（src/）" },
   { test: (p) => p.startsWith(".github/"), why: "不要修改 CI 配置（.github/）" },
 ];
@@ -95,14 +101,19 @@ function main() {
     }
   }
 
-  // data.json 里的题目日期（date 必须真实存在，避免给不存在的题投稿）
+  // data/<年-月>.json 里的题目日期（date 必须真实存在，避免给不存在的题投稿）
   let knownDates = new Set();
   try {
-    const raw = JSON.parse(readFileSync(resolve(ROOT, "data.json"), "utf8"));
-    const arr = Array.isArray(raw) ? raw : raw.problems || [];
-    knownDates = new Set(arr.map((it) => String(it.date || "")));
+    const dataDir = resolve(ROOT, DATA_DIR);
+    const monthFiles = readdirSync(dataDir).filter((n) => MONTH_FILE_RE.test(n));
+    if (monthFiles.length === 0) throw new Error(`${DATA_DIR}/ 下没有 YYYY-MM.json`);
+    for (const name of monthFiles) {
+      const raw = JSON.parse(readFileSync(join(dataDir, name), "utf8"));
+      const arr = Array.isArray(raw) ? raw : raw.problems || [];
+      for (const it of arr) knownDates.add(String(it.date || ""));
+    }
   } catch (err) {
-    errors.push(`无法读取 data.json：${err.message}`);
+    errors.push(`无法读取题目数据（${DATA_DIR}/<年-月>.json）：${err.message}`);
   }
 
   const today = todayInBeijing();
@@ -165,7 +176,7 @@ function main() {
       errors.push(`${f}：date「${date}」不是 YYYY-MM-DD 格式`);
     } else {
       if (!knownDates.has(date)) {
-        errors.push(`${f}：date「${date}」在 data.json 里不存在，请确认题目日期`);
+        errors.push(`${f}：date「${date}」在 ${DATA_DIR}/<年-月>.json 里不存在，请确认题目日期`);
       }
       if (date > today) {
         errors.push(`${f}：date「${date}」晚于今天（${today}，北京时间），尚未发布的题目不能投稿`);

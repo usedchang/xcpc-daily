@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
-import { loadSolutionText } from "../data/solutions.js";
+import { loadSolutionText, solutionPath } from "../data/solutions.js";
 import { renderMarkdown } from "../markdown.js";
 
 const props = defineProps({
@@ -21,7 +21,13 @@ const hints = computed(() =>
     .map((h, i) => ({ title: `Hint ${i + 1}`, html: renderMarkdown(h) }))
 );
 
-const fallbackFile = computed(() => `solutions/${props.problem?.date || "YYYY-MM-DD"}.md`);
+// 题解按月分目录：solutions/<YYYY-MM>/<date>.md（例如 solutions/2026-09/2026-09-08.md）
+const fallbackFile = computed(() => solutionPath(props.problem));
+// 题目数据也是按月一个文件，hints 要写在对应月份里
+const dataFile = computed(() => {
+  const m = /^(\d{4}-\d{2})/.exec(String(props.problem?.date || ""));
+  return m ? `data/${m[1]}.json` : "data/<年-月>.json";
+});
 
 function copyCode(btn) {
   const pre = btn.closest("pre");
@@ -109,7 +115,7 @@ watch(() => props.problem, load, { immediate: true });
 
       <div v-if="!solutionHtml && !hints.length" class="muted">
         暂无题解内容：请在 <code>{{ fallbackFile }}</code> 添加题解，
-        或在 <code>data.json</code> 中为该题添加 <code>hints</code>。
+        或在 <code>{{ dataFile }}</code> 中为该题添加 <code>hints</code>。
       </div>
     </template>
   </div>
