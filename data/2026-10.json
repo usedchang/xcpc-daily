@@ -6,5 +6,45 @@
   "link": "https://www.luogu.com.cn/problem/P8819",
   "difficulty": "省选/NOI-",
   "tags": ["graphs"]
+},
+{
+  "date": "2026-10-02",
+  "source": "AtCoder Beginner Contest 280",
+  "title": "Pay or Receive",
+  "link": "https://atcoder.jp/contests/abc280/tasks/abc280_f",
+  "difficulty": "1700",
+  "tags": ["graphs"]
+},
+{
+  "date": "2026-10-03",
+  "source": "第十一届中国大学生程序设计竞赛 女生专场",
+  "title": "左儿子右兄弟",
+  "link": "https://qoj.ac/contest/2564/problem/14460",
+  "difficulty": "1500",
+  "tags": ["count","math"]
+},
+{
+  "date": "2026-10-04",
+  "source": "The 2018 ICPC Asia Nanjing Regional Contest",
+  "title": "平庸的字符串问题",
+  "link": "https://qoj.ac/contest/1832/problem/8983/statement/zh_cn",
+  "difficulty": "区域铜",
+  "tags": ["strings"]
+},
+{
+  "date": "2026-10-05",
+  "source": "Codeforces Round 1069 (Div. 2)",
+  "title": "Wishing Cards",
+  "link": "https://codeforces.com/problemset/problem/2175/D",
+  "difficulty": "1900",
+  "tags": ["dp"]
+},
+{
+  "date": "2026-10-06",
+  "source": "Luogu P8819",
+  "title": "P8819 [CSP-S 2022] 星战",
+  "link": "https://www.luogu.com.cn/problem/P8819",
+  "difficulty": "省选/NOI-",
+  "tags": ["graphs"]
 }
 ]
