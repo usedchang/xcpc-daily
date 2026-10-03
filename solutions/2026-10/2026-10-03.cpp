@@ -1,0 +1,75 @@
+#include<bits/stdc++.h>
+using namespace std;
+#define endl '\n'
+typedef long long ll;
+const ll mod=998244353;
+vector<ll>fac,invfac;
+ll q_pow(ll x,ll y){
+    ll s=1;
+    while(y>0){
+        if(y&1){
+            s=s*x%mod;
+        }
+        x=x*x%mod;
+        y>>=1;
+    }
+    return s;
+}
+void init(int n){
+    fac=invfac=vector<ll>(n+1,1);
+    for(int i=1;i<=n;i++) fac[i]=fac[i-1]*i%mod;
+    invfac[n]=q_pow(fac[n],mod-2);
+    for(int i=n-1;i>=1;i--) invfac[i]=invfac[i+1]*(i+1)%mod;
+}
+void solve(){
+    int n;cin>>n;
+    vector<int>f(n+1);
+    vector<vector<int>>G(n+1);
+    for(int i=2;i<=n;i++) {
+        cin>>f[i];
+        G[f[i]].emplace_back(i);
+    }
+    vector<int>siz(n+1);
+    ll ans=1;
+    auto dfs=[&](auto &&dfs,int u) ->void {
+        siz[u]=1;
+        vector<ll>res;
+        for(int v:G[u]){
+            dfs(dfs,v);
+            siz[u]+=siz[v];
+            res.emplace_back(siz[v]);
+        }
+        sort(res.begin(),res.end());
+        int r=0;
+        for(int l=0;l<res.size();){
+            while(r<res.size()&&res[r]==res[l]) r++;
+            int len=r-l;
+            ans=ans*fac[len]%mod;
+            l=r;
+        }
+    };
+    dfs(dfs,1);
+    vector<int>p(n+1);
+    iota(p.begin(),p.end(),0);
+    sort(p.begin()+1,p.end(),[&](int x,int y){
+        return siz[x]>siz[y];
+    });
+    ll sum=n;
+    auto calc=[&](auto &&calc,int u) ->void {
+        sort(G[u].begin(),G[u].end(),[&](int x,int y){
+            return siz[x]>siz[y];
+        });
+        for(int j=0;j<G[u].size();j++) sum+=1LL*(j+1)*siz[G[u][j]];
+        for(int v:G[u]) calc(calc,v);
+    };
+    calc(calc,1);
+    cout<<sum<<endl;
+    cout<<ans<<endl;
+}
+int main(){
+    cin.tie(0)->ios::sync_with_stdio(false);
+    init(2e6);
+    int T=1;//cin>>T;
+    while(T--) solve();
+    return 0;
+}
