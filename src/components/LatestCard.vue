@@ -7,6 +7,10 @@ const props = defineProps({
   problem: { type: Object, default: null },
   /** 北京时间的今天（`YYYY-MM-DD`）：用来判断这张卡到底是「今日」还是「最近一题」。 */
   today: { type: String, default: "" },
+  /** 上一道已发布的题：卡片底部的「上一题」快捷入口。 */
+  previous: { type: Object, default: null },
+  /** 站内已收录题目总数。 */
+  total: { type: Number, default: 0 },
 });
 
 const hasSolution = computed(() => hasEditorial(props.problem));
@@ -23,7 +27,11 @@ const { show } = useSolutionModal();
 
 <template>
   <section v-if="problem" class="latest">
-    <div class="label">{{ label }}</div>
+    <div class="latest-head">
+      <div class="label">{{ label }}</div>
+      <!-- 期号 = 已发布题数（第 1 期是最早那题）：给「每日一题」这个连续企划一个刻度 -->
+      <span v-if="total" class="latest-issue">第 {{ total }} 期</span>
+    </div>
     <div class="title">{{ problem.title }}</div>
     <div class="meta">
       <span class="meta-date">{{ problem.date }}</span> · {{ problem.source }}
@@ -37,6 +45,28 @@ const { show } = useSolutionModal();
       <button type="button" class="btn ghost" @click="show(problem)">
         {{ hasSolution ? "查看题解" : "讨论 / 投稿" }}
       </button>
+    </div>
+
+    <!-- 卡片底部：上一题的快捷入口 + 收录总数。
+         「今日题目」是本站的主体，这张卡不能比下面的工具面板还单薄，
+         所以在这里补一行真正有用的信息，而不是靠留白把卡片撑高。 -->
+    <div class="latest-foot">
+      <a
+        v-if="previous"
+        class="latest-prev"
+        :href="previous.link"
+        target="_blank"
+        rel="noopener"
+        :title="`上一题：${previous.title}`"
+      >
+        <span class="latest-prev-label">上一题</span>
+        <span class="latest-prev-date">{{ previous.date }}</span>
+        <span class="latest-prev-title">{{ previous.title }}</span>
+        <span class="latest-prev-arrow" aria-hidden="true">↗</span>
+      </a>
+      <span v-else class="latest-prev-empty">这是收录的第一题</span>
+
+      <span v-if="total" class="latest-total">共收录 <strong>{{ total }}</strong> 题</span>
     </div>
   </section>
 </template>

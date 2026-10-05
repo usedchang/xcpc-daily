@@ -1,9 +1,11 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from "vue";
 import { loadProblems } from "./data/problems.js";
+import { cfKeyFromLink } from "./data/cfProblems.js";
 import ThemeToggle from "./components/ThemeToggle.vue";
 import GithubCorner from "./components/GithubCorner.vue";
 import LatestCard from "./components/LatestCard.vue";
+import RandomProblem from "./components/RandomProblem.vue";
 import FilterBar from "./components/FilterBar.vue";
 import ProblemTable from "./components/ProblemTable.vue";
 import SolutionModal from "./components/SolutionModal.vue";
@@ -64,6 +66,8 @@ const publishedData = computed(() =>
 );
 
 const latest = computed(() => publishedData.value[0] || null);
+/** 今日卡片底部「上一题」用：已发布列表里的第二条。 */
+const previousProblem = computed(() => publishedData.value[1] || null);
 
 // 底部「今日题目讨论」跟着最近一题走，但**只在没有弹窗时存在**。
 //
@@ -94,6 +98,19 @@ const tags = computed(() => {
   return [...count.entries()]
     .map(([name, n]) => ({ name, count: n }))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+});
+
+// ------- CF 题号索引：给「随机一题」标出哪些题本站发过 -------
+// 随机抽到一道 Codeforces 的题时，如果它就是往期某天的「每日一题」，
+// 面板上会标「本站已收录」并直接给出题解入口 —— 两个功能就此打通。
+// key 用 `cfKeyFromLink` 从链接里解析，避免依赖数据里额外的字段。
+const archiveIndex = computed(() => {
+  const map = new Map();
+  for (const it of publishedData.value) {
+    const key = cfKeyFromLink(it.link);
+    if (key && !map.has(key)) map.set(key, it);
+  }
+  return map;
 });
 
 // ------- 匹配 + 过滤 -------
@@ -142,6 +159,20 @@ function clearFilters() {
   filters.tags = [];
 }
 
+/**
+ * 顶部导航：滚动到页面里的某个区块。
+ *
+ * 用 scrollIntoView 而不是 `<a href="#archive">`：本站跑在 hash 路由上，
+ * 直接改 hash 会让 vue-router 去解析一个不存在的路径（`#archive` → path "archive"），
+ * 因此锚点一律走 JS，URL 只留给筛选状态。
+ */
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+}
+
 // URL 参数 → 初始状态：hash 形式的 #/?year=...&month=...&q=...
 const urlState = useUrlState(filters);
 
@@ -170,27 +201,52 @@ onBeforeUnmount(() => {
     <header>
       <ThemeToggle />
       <h1><span class="brand">XCPC</span> 每日一题</h1>
-      <p>每天一道算法竞赛题目 · 只记录「来源 · 题目 · 链接」</p>
+      <p class="site-sub">每天一道算法竞赛题目 · 只记录「来源 · 题目 · 链接」</p>
+      <!-- 页面现在有三块内容，给一组跳转按钮；窄屏下退化成一行可横向滚动的胶囊 -->
+      <nav class="site-nav" aria-label="页面区块导航">
+        <button type="button" @click="scrollToSection('today')">今日题目</button>
+        <button type="button" @click="scrollToSection('random')">🎲 随机一题</button>
+        <button type="button" @click="scrollToSection('archive')">往期题目</button>
+      </nav>
     </header>
 
-    <LatestCard :problem="latest" :today="todayStr" />
+    <div id="today" class="section">
+      <LatestCard
+        :problem="latest"
+        :today="todayStr"
+        :previous="previousProblem"
+        :total="publishedData.length"
+      />
+    </div>
 
-    <FilterBar
-      :dates="dates"
-      :tags="tags"
-      :filters="filters"
-      :result-info="resultInfo"
-      @update:search="setSearch"
-      @update:year="setYear"
-      @update:month="setMonth"
-      @update:day="setDay"
-      @update:selectedTags="setTags"
-      @clear="clearFilters"
-    />
+    <!-- 随机一题：走 Codeforces 公开题库，与「每日一题」的数据源互不影响 -->
+    <div id="random" class="section">
+      <RandomProblem :archive-index="archiveIndex" />
+    </div>
 
-    <div v-if="loading" class="loading-state" role="status">正在加载题目…</div>
-    <ProblemTable v-else-if="!loadError" :problems="filtered" />
-    <p v-else class="muted">加载题目数据失败：{{ loadError }}。请检查 <code>data/</code> 下的月份 json 是否合法，并通过 dev server 或 GitHub Pages 访问。</p>
+    <div id="archive" class="section">
+      <h2 class="section-title">
+        往期题目
+        <span class="section-count">{{ publishedData.length }}</span>
+      </h2>
+
+      <FilterBar
+        :dates="dates"
+        :tags="tags"
+        :filters="filters"
+        :result-info="resultInfo"
+        @update:search="setSearch"
+        @update:year="setYear"
+        @update:month="setMonth"
+        @update:day="setDay"
+        @update:selectedTags="setTags"
+        @clear="clearFilters"
+      />
+
+      <div v-if="loading" class="loading-state" role="status">正在加载题目…</div>
+      <ProblemTable v-else-if="!loadError" :problems="filtered" />
+      <p v-else class="muted">加载题目数据失败：{{ loadError }}。请检查 <code>data/</code> 下的月份 json 是否合法，并通过 dev server 或 GitHub Pages 访问。</p>
+    </div>
 
     <!-- 投稿入口：暂时由 COMMUNITY.submitEnabled 关掉（改回 true 即恢复，不是删功能） -->
     <div v-if="COMMUNITY.submitEnabled" class="site-cta">

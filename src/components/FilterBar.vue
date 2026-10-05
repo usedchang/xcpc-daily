@@ -59,6 +59,9 @@ onBeforeUnmount(() => {
 const hasDateFilter = () =>
   !!(props.filters.year || props.filters.month || props.filters.day);
 const hasTagFilter = () => (props.filters.tags || []).length > 0;
+/** 有没有任何筛选在生效：用来决定「清除」是否可点（没得清就别亮着） */
+const hasAnyFilter = () =>
+  !!(props.filters.q.trim() || hasDateFilter() || hasTagFilter());
 </script>
 
 <template>
@@ -108,9 +111,11 @@ const hasTagFilter = () => (props.filters.tags || []).length > 0;
         </div>
       </div>
 
-      <button type="button" @click="emit('clear')">清除</button>
-    </div>
+      <button type="button" :disabled="!hasAnyFilter()" @click="emit('clear')">清除</button>
 
-    <div class="result-info">{{ resultInfo }}</div>
+      <!-- 结果计数挪进工具栏右侧：省掉整整一行高度，也不用再让用户
+           在「控件行」和「计数行」之间来回看。窄屏会自己折到下一行（见 style.css）。 -->
+      <div class="result-info">{{ resultInfo }}</div>
+    </div>
   </div>
 </template>

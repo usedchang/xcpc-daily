@@ -4,6 +4,11 @@ const props = defineProps({
   tags: { type: Array, default: () => [] },
   // 当前选中的 tag 名数组
   selected: { type: Array, default: () => [] },
+  // 标题与副标题：站内筛选与「随机一题」的标签池语义不同（并集 vs 交集），
+  // 文案由调用方给，免得同一个组件在两处说两套话。
+  label: { type: String, default: "算法标签" },
+  hint: { type: String, default: "（多选 · 命中任一所选即显示）" },
+  emptyText: { type: String, default: "暂无标签数据" },
 });
 
 const emit = defineEmits(["update:selected"]);
@@ -19,8 +24,8 @@ function toggle(t) {
 <template>
   <div class="tag-filter">
     <div class="df-row-label">
-      算法标签
-      <span class="muted">（多选 · 命中任一所选即显示）</span>
+      {{ label }}
+      <span v-if="hint" class="muted">{{ hint }}</span>
     </div>
     <div class="tag-scroll" role="listbox" aria-label="算法标签筛选">
       <label v-for="t in tags" :key="t.name"
@@ -31,7 +36,7 @@ function toggle(t) {
         <span class="tag-name">{{ t.name }}</span>
         <span class="tag-count">{{ t.count }}</span>
       </label>
-      <div v-if="tags.length === 0" class="muted">暂无标签数据</div>
+      <div v-if="tags.length === 0" class="muted">{{ emptyText }}</div>
     </div>
   </div>
 </template>
