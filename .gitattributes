@@ -1,0 +1,5 @@
+# Windows 批处理（.bat / .cmd）必须是 CRLF 行尾：
+# cmd.exe 按 CR 断行，纯 LF 的文件会被当成一整行解析，
+# 中文注释和 echo 全都会变成「不是内部或外部命令」。
+*.bat text eol=crlf
+*.cmd text eol=crlf

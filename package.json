@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "data:index": "node scripts/data-index.mjs"
+    "data:index": "node scripts/data-index.mjs",
+    "check": "node scripts/tool.mjs check",
+    "check:live": "node scripts/tool.mjs check live",
+    "test:cf-random": "node scripts/test-cf-random.mjs",
+    "test:cf-random:live": "node scripts/test-cf-random.mjs --live"
   },
   "dependencies": {
     "dompurify": "^3.4.15",
