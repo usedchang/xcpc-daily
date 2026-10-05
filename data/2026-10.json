@@ -37,14 +37,14 @@
   "title": "Wishing Cards",
   "link": "https://codeforces.com/problemset/problem/2175/D",
   "difficulty": "1900",
-  "tags": ["dp"]
+  "tags": ["dp","greedy"]
 },
 {
   "date": "2026-10-06",
-  "source": "Luogu P8819",
-  "title": "P8819 [CSP-S 2022] 星战",
-  "link": "https://www.luogu.com.cn/problem/P8819",
-  "difficulty": "省选/NOI-",
-  "tags": ["graphs"]
+  "source": "Squarepoint Challenge (Codeforces Round 1055, Div. 1 + Div. 2)",
+  "title": "Monotone Subsequence",
+  "link": "https://codeforces.com/problemset/problem/2152/E",
+  "difficulty": "2100",
+  "tags": ["interactive","constructive","math"]
 }
 ]
