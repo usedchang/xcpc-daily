@@ -46,6 +46,19 @@
   --gold-soft: color-mix(in srgb, var(--gold) 12%, var(--card));
   --gold-line: color-mix(in srgb, var(--gold) 34%, var(--border));
 
+  /* —— 板块标识绿 ——
+     「今日题目」和「随机一题」是并列的两个入口，卡片左侧那条竖条必须是同一个
+     绿色（原来随机一题是金色，两块面板看起来属于两套配色）。
+     浅色下它和 --accent 同值；暗色下**不跟着 --accent 变蓝** —— 见 :root.dark。 */
+  --green: #2c7d5c;
+  /* 卡片左侧竖条的完整渐变（自上而下淡出）：两张卡共用这一个变量，
+     改一处两边同时生效，不会再出现「一块绿一块金」的偏差。 */
+  --green-bar: linear-gradient(
+    180deg,
+    var(--green),
+    color-mix(in srgb, var(--green) 20%, transparent)
+  );
+
   /* —— 标签胶囊 —— */
   --tag-bg: color-mix(in srgb, var(--accent) 9%, var(--card));
   --tag-text: #276b50;
@@ -97,6 +110,10 @@
   --gold: #e8b955;
   --gold-soft: color-mix(in srgb, var(--gold) 14%, var(--card));
   --gold-line: color-mix(in srgb, var(--gold) 34%, var(--border));
+
+  /* 暗底上的绿：#2c7d5c 太闷，提亮一档（仍是同一族的绿）。
+     只覆盖颜色，--green-bar 会跟着重算。 */
+  --green: #45c08d;
 
   --tag-bg: color-mix(in srgb, var(--accent) 14%, var(--card));
   --tag-text: #9fd0ff;
@@ -432,13 +449,14 @@ header h1 .brand {
 }
 /* 左侧主色竖条 + 右上角柔光：把「今天」这张卡和下方列表拉开层次。
    柔光刻意开得很大很淡，并让圆心落在卡片之外 —— 圆心贴边时渐变会在圆角处
-   被硬生生裁断，暗色主题下尤其像一块脏斑；半径也别铺满整卡，否则一片蓝雾。 */
+   被硬生生裁断，暗色主题下尤其像一块脏斑；半径也别铺满整卡，否则一片蓝雾。
+   竖条颜色走 --green-bar：「随机一题」用的是同一个变量，两条竖条必然一致。 */
 .latest::before {
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
   width: 3px;
-  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 20%, transparent));
+  background: var(--green-bar);
 }
 .latest::after {
   content: "";
@@ -600,7 +618,9 @@ header h1 .brand {
 
 /* ---------- 随机一题（Codeforces 题库） ----------
    与 .latest 同一套卡片语言（左侧主色竖条 + 圆角 + 阴影），
-   内部再分两列：左「筛选条件」右「抽取结果」。 */
+   内部再分两列：左「筛选条件」右「抽取结果」。
+   竖条与「今日题目」共用 --green-bar 这一个变量：两块面板是并列的两个入口，
+   左边框必须同色同形（原来是金色，看起来像另一套配色）。 */
 .cf-random {
   position: relative;
   overflow: hidden;
@@ -615,7 +635,7 @@ header h1 .brand {
   position: absolute;
   inset: 0 auto 0 0;
   width: 3px;
-  background: linear-gradient(180deg, var(--gold), color-mix(in srgb, var(--gold) 20%, transparent));
+  background: var(--green-bar);
 }
 .cf-random-head {
   display: flex;
@@ -880,7 +900,15 @@ header h1 .brand {
   top: 0;
   bottom: 0;
   border-radius: var(--r-pill);
-  background: var(--accent);
+  /* 选中区间走横向渐变：左浅右深 —— 分数越高颜色越实，跟「难度」的直觉一致。
+     两枚滑块就骑在这条渐变的两个端点上，被选中是哪一段一眼可见；
+     顶部再压一道高光，6px 的细条因此不是一块死色。 */
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent) 42%, var(--card)),
+    var(--accent)
+  );
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--on-accent) 24%, transparent);
 }
 .rr-input {
   position: absolute;
