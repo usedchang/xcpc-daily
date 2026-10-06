@@ -46,5 +46,13 @@
   "link": "https://codeforces.com/problemset/problem/2152/E",
   "difficulty": "2100",
   "tags": ["interactive","constructive","math"]
+},
+{
+  "date": "2026-10-07",
+  "source": "Codeforces Round 490 (Div. 3)",
+  "title": "E. Reachability from the Capital",
+  "link": "https://codeforces.com/problemset/problem/999/E",
+  "difficulty": "2000",
+  "tags": ["graphs","greedy"]
 }
 ]
