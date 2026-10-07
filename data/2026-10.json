@@ -54,5 +54,13 @@
   "link": "https://codeforces.com/problemset/problem/999/E",
   "difficulty": "2000",
   "tags": ["graphs","greedy"]
+},
+{
+  "date": "2026-10-08",
+  "source": "SDCPC 2023",
+  "title": "不是一道路径查询问题",
+  "link": "https://qoj.ac/contest/1280/problem/6679/statement/zh_cn",
+  "difficulty": "省赛中后期",
+  "tags": ["graphs","bitmasks"]
 }
 ]
