@@ -62,5 +62,13 @@
   "link": "https://qoj.ac/contest/1280/problem/6679/statement/zh_cn",
   "difficulty": "省赛中后期",
   "tags": ["graphs","bitmasks"]
+},
+{
+  "date": "2026-10-09",
+  "source": "CCPC 2022 Guangzhou",
+  "title": "异或和",
+  "link": "https://qoj.ac/contest/1493/problem/8150/statement/zh_cn",
+  "difficulty": "区域铜",
+  "tags": ["bitmasks","count"]
 }
 ]
