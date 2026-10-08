@@ -69,6 +69,46 @@
   "title": "异或和",
   "link": "https://qoj.ac/contest/1493/problem/8150/statement/zh_cn",
   "difficulty": "区域铜",
-  "tags": ["bitmasks","count"]
+  "tags": ["bitmasks","count","dp"]
+},
+{
+  "date": "2026-10-10",
+  "source": "SDCPC 2023",
+  "title": "计算几何",
+  "link": "https://qoj.ac/contest/1280/problem/6676/statement/zh_cn",
+  "difficulty": "省赛中后期",
+  "tags": ["math","geometry"]
+},
+{
+  "date": "2026-10-11",
+  "source": "SDCPC 2023",
+  "title": "多彩的线段",
+  "link": "https://qoj.ac/contest/1280/problem/6672/statement/zh_cn",
+  "difficulty": "省赛后期",
+  "tags": ["dp","data structures"]
+},
+{
+  "date": "2026-10-12",
+  "source": "The 4th Universal Cup. Extra Stage 5: Shenzhen",
+  "title": "阿斯特拉",
+  "link": "https://qoj.ac/contest/3588/problem/17758/statement/zh_cn",
+  "difficulty": "邀请赛中后期",
+  "tags": ["games"]
+},
+{
+  "date": "2026-10-13",
+  "source": "(2025)第六届辽宁省大学生程序设计竞赛 (沈阳)",
+  "title": "猫猫虫打 CF",
+  "link": "https://qoj.ac/contest/2642/problem/14754",
+  "difficulty": "省赛中后期",
+  "tags": ["math"]
+},
+{
+  "date": "2026-10-14",
+  "source": "“华为智联杯”无线程序设计大赛暨2025年上海市大学生程序设计竞赛",
+  "title": "神之一手",
+  "link": "https://qoj.ac/contest/2238/problem/12569",
+  "difficulty": "省赛中后期",
+  "tags": ["math"]
 }
 ]
