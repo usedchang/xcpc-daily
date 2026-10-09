@@ -1,0 +1,40 @@
+#include<bits/stdc++.h>
+using namespace std;
+#define endl '\n'
+typedef long long ll;
+typedef long double ld;
+struct Point{ ll x,y; };
+void solve(){
+    int n,k;
+    cin>>n>>k;
+    vector<Point>a(n*2+1);
+    for(int i=1;i<=n;i++) cin>>a[i].x>>a[i].y,a[i+n]=a[i];
+    auto cross=[&](const Point &A,const Point &B) ->ll {
+        return A.x*B.y-A.y*B.x;
+    };
+    vector<__int128>pre(n*2+1);
+    for(int i=1;i<2*n;i++) pre[i+1]=pre[i]+cross(a[i],a[i+1]);
+    auto calc=[&](int x,int y,int j) ->__int128 {
+        return (pre[y]-pre[x])+cross(a[y],a[j])+cross(a[j],a[x]);
+    };//计算面积
+    __int128 ans=0;
+    for(int x=1;x<=n;x++){
+        int y=x+k;
+        int l=y+1,r=x+n-1;
+        while(l<=r){
+            int mid1=l+(r-l)/3;
+            int mid2=r-(r-l)/3;
+            if(calc(x,y,mid1)<calc(x,y,mid2)) l=mid1+1;
+            else r=mid2-1;
+        }
+        for(int j=max(r-2,y+1);j<=min(l+2,x+n-1);j++) ans=max(ans,calc(x,y,j));
+    }
+    cout<<(ld)ans/2<<endl;
+}
+int main(){
+    cin.tie(0)->ios::sync_with_stdio(false);
+    cout<<fixed<<setprecision(15);
+    int T=1;cin>>T;
+    while(T--) solve();
+    return 0;
+}
