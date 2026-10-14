@@ -101,7 +101,7 @@
   "title": "猫猫虫打 CF",
   "link": "https://qoj.ac/contest/2642/problem/14754",
   "difficulty": "省赛中后期",
-  "tags": ["math"]
+  "tags": ["math","data structures"]
 },
 {
   "date": "2026-10-14",
@@ -110,5 +110,13 @@
   "link": "https://qoj.ac/contest/2238/problem/12569",
   "difficulty": "省赛中后期",
   "tags": ["math"]
+},
+{
+  "date": "2026-10-15",
+  "source": "2023湖南省赛",
+  "title": "square game",
+  "link": "https://codeforces.com/gym/104611/problem/B",
+  "difficulty": "省赛中后期",
+  "tags": ["games","math"]
 }
 ]
