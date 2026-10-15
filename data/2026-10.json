@@ -109,7 +109,7 @@
   "title": "神之一手",
   "link": "https://qoj.ac/contest/2238/problem/12569",
   "difficulty": "省赛中后期",
-  "tags": ["math"]
+  "tags": ["math","dp"]
 },
 {
   "date": "2026-10-15",
@@ -118,5 +118,13 @@
   "link": "https://codeforces.com/gym/104611/problem/B",
   "difficulty": "省赛中后期",
   "tags": ["games","math"]
+},
+{
+  "date": "2026-10-16",
+  "source": "第46届ICPC亚洲区域赛(昆明)",
+  "title": "Find the Maximum",
+  "link": "https://ac.nowcoder.com/acm/contest/32708/F",
+  "difficulty": "区域铜",
+  "tags": ["math","graphs"]
 }
 ]
