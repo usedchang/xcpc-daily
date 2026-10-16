@@ -126,5 +126,37 @@
   "link": "https://ac.nowcoder.com/acm/contest/32708/F",
   "difficulty": "区域铜",
   "tags": ["math","graphs"]
+},
+{
+  "date": "2026-10-17",
+  "source": "The 2022 ICPC Asia Hangzhou Regional Programming Contest",
+  "title": "C. No Bug No Game",
+  "link": "https://codeforces.com/gym/104090/problem/C",
+  "difficulty": "区域铜",
+  "tags": ["dp"]
+},
+{
+  "date": "2026-10-18",
+  "source": "The 2022 ICPC Asia Hangzhou Regional Programming Contest",
+  "title": "A. Modulo Ruins the Legend",
+  "link": "https://codeforces.com/gym/104090/problem/A",
+  "difficulty": "区域铜",
+  "tags": ["math"]
+},
+{
+  "date": "2026-10-19",
+  "source": "The 2023 ICPC Asia Hefei Regional Contest",
+  "title": "Takeout Delivering",
+  "link": "https://qoj.ac/problem/7883/statement/zh_cn",
+  "difficulty": "区域铜",
+  "tags": ["data structures"]
+},
+{
+  "date": "2026-10-20",
+  "source": "The 2023 ICPC Asia Hefei Regional Contest",
+  "title": "Equal",
+  "link": "https://qoj.ac/contest/3200/problem/16505",
+  "difficulty": "1500",
+  "tags": ["math"]
 }
 ]
