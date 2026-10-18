@@ -10,7 +10,7 @@ const props = defineProps({
   day: { type: String, default: "" },
 });
 
-const emit = defineEmits(["update:year", "update:month", "update:day", "clear"]);
+const emit = defineEmits(["update:year", "update:month", "update:day", "clear", "picked"]);
 
 // 所有出现过的年份（降序）
 const years = computed(() =>
@@ -60,18 +60,38 @@ const firstWeekday = computed(() =>
 
 const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 
+/** 数据里最新的一天，给「最新一天」快捷键用。 */
+const latestDate = computed(() => {
+  const sorted = [...props.dates].sort(
+    (a, b) =>
+      a.y.localeCompare(b.y) || a.m.localeCompare(b.m) || a.d.localeCompare(b.d)
+  );
+  return sorted[sorted.length - 1] || null;
+});
+
 function pickYear(y) {
   emit("update:year", y);
   emit("update:month", "");
   emit("update:day", "");
 }
 function pickMonth(m) {
+  // 面板默认展示最新年份时 year 还没写进 filters，只 emit month 会变成
+  // 「所有年份的这个月」；先把当前展示的年份一起写进去。
+  emit("update:year", activeYear.value);
   emit("update:month", m);
   emit("update:day", "");
 }
 function pickDay(d) {
   // 再点一次选中的日期 → 取消
-  emit("update:day", props.day === d ? "" : d);
+  const value = props.day === d ? "" : d;
+  // 关键：面板默认展示「最新年/月」时，year/month 并没有真正写进 filters。
+  // 只 emit day 会变成「18 日」这种跨月份筛选（9 月 18、10 月 18 都会命中）。
+  if (value) {
+    emit("update:year", activeYear.value);
+    emit("update:month", activeMonth.value);
+  }
+  emit("update:day", value);
+  emit("picked");
 }
 
 // 重置当前面板的日期筛选
@@ -79,6 +99,15 @@ function clearDate() {
   emit("update:year", "");
   emit("update:month", "");
   emit("update:day", "");
+}
+
+/** 直接跳到数据里最新的一天；比「年 → 月 → 日」点三次更适合日常使用。 */
+function pickLatest() {
+  if (!latestDate.value) return;
+  emit("update:year", latestDate.value.y);
+  emit("update:month", latestDate.value.m);
+  emit("update:day", latestDate.value.d);
+  emit("picked");
 }
 </script>
 
@@ -101,7 +130,16 @@ function clearDate() {
     <!-- 日历：标题行 + 星期行 + 日期行 必须同一 7 列网格宽度 -->
     <div class="df-cal-head">
       <span>{{ activeYear }} 年 {{ Number(activeMonth) }} 月</span>
-      <button type="button" class="df-clear-link" @click="clearDate">重置日期</button>
+      <span class="df-cal-actions">
+        <button
+          v-if="latestDate"
+          type="button"
+          class="df-clear-link"
+          :title="`跳到 ${latestDate.y}-${latestDate.m}-${latestDate.d}`"
+          @click="pickLatest"
+        >最新一天</button>
+        <button type="button" class="df-clear-link" @click="clearDate">重置日期</button>
+      </span>
     </div>
     <div class="df-calendar">
       <template v-for="(w, i) in WEEKDAYS" :key="'w' + i">

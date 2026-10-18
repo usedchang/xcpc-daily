@@ -119,11 +119,26 @@ export function filterProblems(problems, options = {}) {
   const min = typeof options.minRating === "number" ? options.minRating : null;
   const max = typeof options.maxRating === "number" ? options.maxRating : null;
   const includeUnrated = Boolean(options.includeUnrated);
+  // 已绑定的 Codeforces 账号已经 AC 的题；不在选项里出现时按空集合处理
+  const excludeKeys =
+    options.excludeKeys instanceof Set
+      ? options.excludeKeys
+      : new Set(Array.isArray(options.excludeKeys) ? options.excludeKeys : []);
   const list = Array.isArray(problems) ? problems : [];
 
-  if (!tags.length && min == null && max == null && includeUnrated) return list.slice();
+  if (
+    !tags.length &&
+    min == null &&
+    max == null &&
+    includeUnrated &&
+    excludeKeys.size === 0
+  ) {
+    return list.slice();
+  }
 
   return list.filter((p) => {
+    if (excludeKeys.size && excludeKeys.has(problemKey(p))) return false;
+
     if (typeof p.rating === "number") {
       if (min != null && p.rating < min) return false;
       if (max != null && p.rating > max) return false;

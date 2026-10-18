@@ -470,6 +470,17 @@ test("条件叠加：分数 + 标签 + 未评级一起生效", () => {
   }
 });
 
+test("excludeKeys：绑定账号已经 AC 的题会被剔除", () => {
+  const pool = makePool(30);
+  const removed = pool[0];
+  const key = problemKey(removed);
+  const out = filterProblems(pool, { includeUnrated: true, excludeKeys: new Set([key]) });
+  assert.equal(out.length, pool.length - 1);
+  assert.equal(out.some((p) => problemKey(p) === key), false);
+  // 空排除集合走原来的快速返回路径
+  assert.equal(filterProblems(pool, { includeUnrated: true, excludeKeys: new Set() }).length, pool.length);
+});
+
 test("无筛选条件时返回副本（长度一致、但不是同一个数组引用）", () => {
   const pool = makePool(30);
   const out = filterProblems(pool, {});

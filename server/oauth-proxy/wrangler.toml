@@ -1,0 +1,17 @@
+# Cloudflare Worker 配置。
+#
+# 1. 把 GITHUB_CLIENT_ID 换成 OAuth App 的 Client ID（不是 secret，可以公开）；
+# 2. ALLOWED_ORIGINS 加上站点地址；本地调试保留 localhost/127.0.0.1；
+# 3. 在 server/oauth-proxy 目录执行 `npx wrangler deploy`。
+#
+# 注意：这个代理不需要 GITHUB_CLIENT_SECRET，不要往这里加 secret。
+
+name = "xcpc-daily-auth"
+main = "worker.mjs"
+compatibility_date = "2026-01-01"
+workers_dev = true
+
+[vars]
+GITHUB_CLIENT_ID = "REPLACE_WITH_YOUR_OAUTH_APP_CLIENT_ID"
+ALLOWED_ORIGINS = "https://usedchang.github.io,http://localhost:5173,http://127.0.0.1:5173"
+ALLOWED_SCOPES = "read:user gist"

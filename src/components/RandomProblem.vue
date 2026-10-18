@@ -2,15 +2,16 @@
 /**
  * 「随机一题」面板。
  *
- * 与「每日一题」并列的第二个入口：不走站内 data/*.json，而是直接调 Codeforces
+ * 现在挂在独立子页面 #/random：不走站内 data/*.json，而是直接调 Codeforces
  * 公开 API 的题库随机抽题，支持按算法标签多选 + 分数区间筛选。
  *
  * 随机性由 useCfRandom 保证（不放回抽取：一轮之内绝不重复），本组件只负责展示
  * 「抽了什么」和「本轮抽到第几题了」——把这个计数摆在明面上，用户才能确认
  * 「每次点击都不同」不是口头承诺。
  */
-import { computed, onMounted, onBeforeUnmount, ref } from "vue";
+import { computed, onMounted, onBeforeUnmount, ref, watch } from "vue";
 import { useCfRandom } from "../composables/useCfRandom.js";
+import { useCfBinding } from "../composables/useCfBinding.js";
 import { useSolutionModal } from "../composables/useSolutionModal.js";
 import { problemUrl } from "../data/cfProblems.js";
 import { copyText } from "../utils/copy.js";
@@ -27,9 +28,22 @@ const props = defineProps({
 
 const {
   problems, tags, status, error, fromCache, bounds, filters,
-  current, drawnInCycle, poolSize, ready, loading, hasTags,
+  current, drawnInCycle, poolSize, excludedCount, ready, loading, hasTags,
   ratingStep, draw, ensureLoaded, autoLoad, resetCycle, clearFilters, toggleTag,
+  setExcludedKeys,
 } = useCfRandom();
+
+// 已绑定 CF 账号的 AC 列表变化时，重新注入随机池
+const { solvedKeys } = useCfBinding();
+watch(
+  solvedKeys,
+  (keys) => {
+    setExcludedKeys(keys);
+    // 已经抽出来的题如果刚好被新绑定的账号 AC 了，就把结果收起来
+    if (current.value?.key && keys.has(current.value.key)) current.value = null;
+  },
+  { immediate: true }
+);
 
 const { show: showSolution } = useSolutionModal();
 
@@ -41,9 +55,13 @@ const nf = new Intl.NumberFormat("zh-CN");
 
 const unratedCount = computed(() => problems.value.filter((p) => p.rating == null).length);
 
-const poolText = computed(() =>
-  ready.value ? `候选 ${nf.format(poolSize.value)} 题` : "题库未加载"
-);
+const poolText = computed(() => {
+  if (!ready.value) return "题库未加载";
+  const base = `候选 ${nf.format(poolSize.value)} 题`;
+  return excludedCount.value
+    ? `${base} · 已排除 ${nf.format(excludedCount.value)} 道 AC`
+    : base;
+});
 
 const tagSummary = computed(() => {
   const n = filters.tags.length;
@@ -145,7 +163,7 @@ onBeforeUnmount(() => {
     <!-- 标题右侧直接跟一句说明：原来它单独占一行，白白撑高了整块卡片，
          而下面那张「今日题目」比它矮一大截，视觉主次就反了。 -->
     <div class="cf-random-head">
-      <h2 class="cf-random-title"><span aria-hidden="true">🎲</span> 随机一题</h2>
+      <h2 class="cf-random-title"><span aria-hidden="true">🎲</span> 抽题面板</h2>
       <span class="cf-random-sub">Codeforces 全站题库 · 按标签与分数随机 · 同一轮内不会重复</span>
       <span class="cf-pool" :class="{ live: ready }">
         {{ poolText }}
@@ -274,6 +292,9 @@ onBeforeUnmount(() => {
         <div v-else-if="ready && poolSize === 0" class="cf-placeholder">
           <strong>当前条件下一道题都没有</strong>
           <small>放宽分数区间，或把标签匹配改成「任一满足」。</small>
+          <small v-if="excludedCount">
+            其中 {{ excludedCount }} 道因绑定账号已 AC 被排除；可以解绑或刷新 AC 列表后再试。
+          </small>
         </div>
 
         <div v-else class="cf-placeholder">

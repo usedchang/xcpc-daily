@@ -1,11 +1,9 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from "vue";
 import { loadProblems } from "./data/problems.js";
-import { cfKeyFromLink } from "./data/cfProblems.js";
 import ThemeToggle from "./components/ThemeToggle.vue";
 import GithubCorner from "./components/GithubCorner.vue";
 import LatestCard from "./components/LatestCard.vue";
-import RandomProblem from "./components/RandomProblem.vue";
 import FilterBar from "./components/FilterBar.vue";
 import ProblemTable from "./components/ProblemTable.vue";
 import SolutionModal from "./components/SolutionModal.vue";
@@ -16,6 +14,8 @@ import { useUrlState } from "./composables/useState.js";
 import { useSubmitModal } from "./composables/useSubmitModal.js";
 import { useSolutionModal } from "./composables/useSolutionModal.js";
 import { COMMUNITY } from "./config/community.js";
+import { CHECKIN } from "./config/checkin.js";
+import { todayInBeijing } from "./utils/date.js";
 
 // 页面顶部的全局投稿入口（与题解弹窗内的入口共用同一个模态框）
 const { show: openSubmit } = useSubmitModal();
@@ -35,20 +35,7 @@ const parseDate = (dateStr) => {
 
 // 北京时间（UTC+8）的今天，格式 YYYY-MM-DD。
 // 用于只展示「已发布」的题目（date <= 今天），未来的预置题目不泄露。
-function todayInBeijing() {
-  // 直接用 IANA 时区名换算，比手算偏移量可靠：
-  // 手算在本地时区恰好是 UTC+8 / UTC+0 时会退化成 UTC 时间，跨天时会差一天。
-  const now = new Date();
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(now);
-  const get = (type) => parts.find((p) => p.type === type)?.value ?? "";
-  return `${get("year")}-${get("month")}-${get("day")}`;
-}
-
+// 具体实现在 utils/date.js：打卡系统也读同一个「今天」，两处不能各算各的。
 const todayStr = ref(todayInBeijing());
 
 // 页面可能被挂一整晚（这站每天更新一次）：跨过北京时间零点后要自己醒过来，
@@ -98,19 +85,6 @@ const tags = computed(() => {
   return [...count.entries()]
     .map(([name, n]) => ({ name, count: n }))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
-});
-
-// ------- CF 题号索引：给「随机一题」标出哪些题本站发过 -------
-// 随机抽到一道 Codeforces 的题时，如果它就是往期某天的「每日一题」，
-// 面板上会标「本站已收录」并直接给出题解入口 —— 两个功能就此打通。
-// key 用 `cfKeyFromLink` 从链接里解析，避免依赖数据里额外的字段。
-const archiveIndex = computed(() => {
-  const map = new Map();
-  for (const it of publishedData.value) {
-    const key = cfKeyFromLink(it.link);
-    if (key && !map.has(key)) map.set(key, it);
-  }
-  return map;
 });
 
 // ------- 匹配 + 过滤 -------
@@ -201,11 +175,12 @@ onBeforeUnmount(() => {
     <header>
       <ThemeToggle />
       <h1><span class="brand">XCPC</span> 每日一题</h1>
-      <p class="site-sub">每天一道算法竞赛题目 · 只记录「来源 · 题目 · 链接」</p>
-      <!-- 页面现在有三块内容，给一组跳转按钮；窄屏下退化成一行可横向滚动的胶囊 -->
+      <p class="site-sub">每天一道算法竞赛题 · 题目 / 题解 / 打卡记录</p>
+      <!-- 主页面只保留今日题目和往期题目；打卡/排行榜、随机一题都是子页面 -->
       <nav class="site-nav" aria-label="页面区块导航">
         <button type="button" @click="scrollToSection('today')">今日题目</button>
-        <button type="button" @click="scrollToSection('random')">🎲 随机一题</button>
+        <router-link v-if="CHECKIN.enabled" to="/checkin">🟩 每日打卡</router-link>
+        <router-link to="/random">🎲 随机一题</router-link>
         <button type="button" @click="scrollToSection('archive')">往期题目</button>
       </nav>
     </header>
@@ -217,11 +192,6 @@ onBeforeUnmount(() => {
         :previous="previousProblem"
         :total="publishedData.length"
       />
-    </div>
-
-    <!-- 随机一题：走 Codeforces 公开题库，与「每日一题」的数据源互不影响 -->
-    <div id="random" class="section">
-      <RandomProblem :archive-index="archiveIndex" />
     </div>
 
     <div id="archive" class="section">

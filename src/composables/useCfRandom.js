@@ -49,7 +49,15 @@ export function useCfRandom() {
   /** 本轮已抽次数，用于向用户展示「抽完前不会重复」。 */
   const drawnInCycle = ref(0);
 
-  const pool = computed(() => filterProblems(problems.value, filters));
+  /** 已绑定 Codeforces 账号 AC 过的题目 key；由 RandomProblem watch 注入。 */
+  const excludedKeys = shallowRef(new Set());
+
+  /** 未排除 AC 的池子，只用于计算「这次排除了多少题」。 */
+  const basePool = computed(() => filterProblems(problems.value, filters));
+  const pool = computed(() =>
+    filterProblems(problems.value, { ...filters, excludeKeys: excludedKeys.value })
+  );
+  const excludedCount = computed(() => basePool.value.length - pool.value.length);
   const poolSize = computed(() => pool.value.length);
   const ready = computed(() => status.value === "ready");
   const loading = computed(() => status.value === "loading");
@@ -178,6 +186,19 @@ export function useCfRandom() {
     filters.tags = [...set];
   }
 
+  /** 注入「已 AC 的题目 key」；同一个集合不重复触发重排。 */
+  function setExcludedKeys(keys) {
+    const next = keys instanceof Set ? keys : new Set(keys || []);
+    const prev = excludedKeys.value;
+    if (
+      next.size === prev.size &&
+      [...next].every((key) => prev.has(key))
+    ) {
+      return;
+    }
+    excludedKeys.value = next;
+  }
+
   return {
     // 数据
     problems,
@@ -190,6 +211,8 @@ export function useCfRandom() {
     current,
     drawnInCycle,
     poolSize,
+    excludedCount,
+    excludedKeys,
     ready,
     loading,
     hasTags,
@@ -202,5 +225,6 @@ export function useCfRandom() {
     resetCycle,
     clearFilters,
     toggleTag,
+    setExcludedKeys,
   };
 }

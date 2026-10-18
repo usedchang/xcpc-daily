@@ -2,8 +2,9 @@
    XCPC 每日一题 · 全站样式
    -----------------------------------------------------------------------------
    页面结构（自上而下，都包在 .wrap 里）：
-     header（标题 + 区块导航）→ #today 今日题目 → #random 随机一题
-     → #archive 往期题目（筛选 + 题表）→ 讨论区 → footer
+     header（标题 + 导航）→ #today 今日题目 → #archive 往期题目 → 讨论区 → footer
+     （「每日打卡 + 排行榜」是 #/checkin，组件 CheckinPage.vue；
+       「随机一题」是 #/random，组件 RandomPage.vue）
    每个区块是一层 .section，纵向节奏由 .section + .section 统一控制。
 
    约定：
@@ -14,8 +15,9 @@
      改样式不需要动 Vue 文件；只有个别「双单词」类名
      （.badge.diff、.badge.archived、.share-btn.done/.fail、.code-copy.copied）
      来自三元表达式或状态值。
-   - 层级（z-index）约定：表头 2 < 下拉面板 30 < GitHub 角标 60 < 分享按钮 80
-     < 题解弹窗 1000 < 投稿弹窗 1100。弹窗必须盖住所有悬浮件。
+   - 层级（z-index）约定：表头 2 < 下拉面板 30 < 打卡日期弹层 40 < GitHub 角标 60
+     < 分享按钮 80 < 打卡 toast 90 < 题解弹窗 1000 < 投稿弹窗 1100。
+     弹窗必须盖住所有悬浮件。
      （.rr-input 的 3/4 是「随机一题」双滑块内部换层用的，与页面层级无关。）
    - 断点：900px（随机面板两列 → 单列）、690px（表格/工具栏）、640px（投稿表单）、
      600px（角标/分享按钮/面板内边距）。
@@ -272,7 +274,7 @@ header h1 .brand {
   text-align: center;
 }
 
-/* 区块跳转：页面有三块内容，给一组胶囊按钮。
+/* 区块跳转：页面有四块内容，给一组胶囊按钮。
    不能写成 <a href="#archive"> —— 本站跑在 hash 路由上，改 hash 会让
    vue-router 去解析一个不存在的路径；所以是 button + scrollIntoView。 */
 .site-nav {
@@ -282,7 +284,10 @@ header h1 .brand {
   gap: 8px;
   margin-top: 16px;
 }
-.site-nav button {
+.site-nav button,
+.site-nav a {
+  display: inline-flex;
+  align-items: center;
   font-family: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -292,15 +297,22 @@ header h1 .brand {
   border-radius: var(--r-pill);
   padding: 6px 15px;
   cursor: pointer;
+  text-decoration: none;
   box-shadow: var(--shadow-sm);
   transition: color var(--t-base), border-color var(--t-base), background var(--t-base),
     transform var(--t-fast);
 }
-.site-nav button:hover {
+.site-nav button:hover,
+.site-nav a:hover {
   color: var(--accent);
   border-color: var(--accent-line);
   background: var(--accent-soft);
   transform: translateY(-1px);
+}
+.site-nav a.router-link-active {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
 }
 
 /* 左上角主题开关：圆角胶囊，hover 时描边亮起（绝对定位在标题行左侧） */
@@ -621,6 +633,211 @@ header h1 .brand {
    内部再分两列：左「筛选条件」右「抽取结果」。
    竖条与「今日题目」共用 --green-bar 这一个变量：两块面板是并列的两个入口，
    左边框必须同色同形（原来是金色，看起来像另一套配色）。 */
+/* ---------- 每日打卡子页面：打卡记录 + 排行榜 ---------- */
+.checkin-page-note {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+}
+.checkin-page-note.error {
+  color: var(--ck-bad);
+}
+.checkin-page-tabs {
+  display: flex;
+  width: max-content;
+  margin: 0 auto 16px;
+  padding: 3px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+}
+.checkin-page-tabs button {
+  padding: 6px 20px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
+}
+.checkin-page-tabs button:hover {
+  color: var(--accent);
+}
+.checkin-page-tabs button.active {
+  color: var(--on-accent);
+  background: var(--accent-fill);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 14%);
+}
+.checkin-page-tabs button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.checkin-page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ---------- Codeforces 账号绑定（随机一题子页面） ---------- */
+.cf-account {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+  padding: 14px 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+.cf-account::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--accent), transparent);
+}
+.cf-account > * {
+  position: relative;
+}
+.cf-account-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cf-account-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+.cf-account-hint {
+  color: var(--faint);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+.cf-account-bound {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.cf-account-avatar {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--border);
+  object-fit: cover;
+}
+.cf-account-id {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.cf-account-id a {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.cf-account-id a:hover {
+  color: var(--accent);
+}
+.cf-account-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+.cf-rating {
+  color: var(--gold);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  border-radius: var(--r-pill);
+  padding: 0 7px;
+  font-size: 10.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.cf-account-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.cf-account-actions .btn {
+  padding: 5px 12px;
+  font-size: 12px;
+}
+.cf-account-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.cf-account-input {
+  flex: 1 1 240px;
+  min-width: 0;
+  padding: 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  transition: border-color var(--t-base), box-shadow var(--t-base), background var(--t-base);
+}
+.cf-account-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--card);
+  box-shadow: var(--ring);
+}
+.cf-account-form .btn {
+  padding: 7px 16px;
+  font-size: 13px;
+}
+.cf-account-form-hint {
+  flex: 1 1 100%;
+  color: var(--faint);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.cf-account-stale {
+  flex: 1 1 100%;
+  margin: 2px 0 0;
+  color: var(--gold);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.cf-account-progress {
+  flex: 1 1 100%;
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+.cf-account-error {
+  flex: 1 1 100%;
+  margin: 6px 0 0;
+  color: var(--ck-bad);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
 .cf-random {
   position: relative;
   overflow: hidden;
@@ -1362,11 +1579,18 @@ header h1 .brand {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   font-size: 13px;
   font-weight: 700;
   margin: 16px 0 8px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
+}
+.df-cal-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
 }
 .df-clear-link {
   background: none;
@@ -2608,7 +2832,8 @@ footer a {
   .site-nav::-webkit-scrollbar {
     display: none;
   }
-  .site-nav button {
+  .site-nav button,
+  .site-nav a {
     flex: none;
     padding: 6px 13px;
   }
@@ -2737,5 +2962,1636 @@ footer a {
 @media (max-width: 640px) {
   .submit-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* =============================================================================
+   每日打卡 / GitHub 登录
+   -----------------------------------------------------------------------------
+   绿色热力图完全复刻 GitHub 的贡献图语言：53 列 × 7 行、周日开头、四档绿。
+   颜色不直接沿用主题色：GitHub 的绿是这个功能的识别符号，暗色主题下也保留
+   绿色（与站点蓝色主色并存，但只出现在格子里）。
+   ============================================================================= */
+
+:root {
+  /* 热力图五档（0 = 无提交）。浅色下的空档偏暖，和纸感背景融在一起 */
+  --ck-0: #e9e5d8;
+  --ck-1: #9be9a8;
+  --ck-2: #40c463;
+  --ck-3: #30a14e;
+  --ck-4: #216e39;
+
+  --ck-good: #1a7f37;
+  --ck-bad: #cf222e;
+  --ck-good-soft: color-mix(in srgb, var(--ck-good) 12%, var(--card));
+  --ck-bad-soft: color-mix(in srgb, var(--ck-bad) 10%, var(--card));
+
+  --ck-cell: 11px;
+  --ck-gap: 3px;
+  --ck-month-h: 15px;
+}
+
+:root.dark {
+  /* GitHub Dark 的四档绿：最深一档几乎融进卡片，最亮一档用来标「今天很拼」 */
+  --ck-0: #21262d;
+  --ck-1: #0e4429;
+  --ck-2: #006d32;
+  --ck-3: #26a641;
+  --ck-4: #39d353;
+
+  --ck-good: #3fb950;
+  --ck-bad: #ff7b72;
+  --ck-good-soft: color-mix(in srgb, var(--ck-good) 14%, var(--card));
+  --ck-bad-soft: color-mix(in srgb, var(--ck-bad) 12%, var(--card));
+}
+
+/* ---------- 面板 ---------- */
+.ck-panel {
+  position: relative;
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 20px 22px 22px;
+  box-shadow: var(--shadow-md);
+}
+/* 左侧竖条与「今日题目 / 随机一题」共用同一套绿：三张卡片是同一层级的入口 */
+.ck-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--green-bar);
+}
+.ck-panel > * {
+  position: relative;
+}
+
+.ck-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.ck-head-text {
+  min-width: 0;
+}
+.ck-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+/* 用 3×3 迷你绿格子当标题图标：比 emoji 更像这个功能本身 */
+.ck-logo {
+  display: grid;
+  grid-template-columns: repeat(3, 5px);
+  grid-auto-rows: 5px;
+  gap: 2px;
+  flex: none;
+}
+.ck-logo i {
+  border-radius: 1.5px;
+  background: var(--ck-1);
+}
+.ck-logo .c2,
+.ck-logo .c4,
+.ck-logo .c9 {
+  background: var(--ck-2);
+}
+.ck-logo .c5,
+.ck-logo .c8 {
+  background: var(--ck-3);
+}
+.ck-logo .c1,
+.ck-logo .c3,
+.ck-logo .c6,
+.ck-logo .c7 {
+  background: var(--ck-0);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--border-strong) 55%, transparent);
+}
+.ck-sub {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+/* ---------- 登录区 ---------- */
+.ck-login {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.ck-login-idle {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ck-login-btn {
+  padding: 7px 14px;
+  font-size: 13px;
+}
+.ck-login-btn svg {
+  flex: none;
+}
+.ck-login-tip,
+.ck-login-note {
+  font-size: 11.5px;
+  color: var(--faint);
+}
+.ck-login-note {
+  padding: 4px 10px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+}
+
+/* 已登录：头像 + 名字 + 同步状态，一块胶囊装下 */
+.ck-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 4px 8px 4px 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+}
+.ck-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--border);
+  object-fit: cover;
+}
+.ck-user-id {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+}
+.ck-user-id strong {
+  font-size: 12.5px;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ck-user-id a {
+  color: var(--faint);
+  font-size: 11px;
+  text-decoration: none;
+}
+.ck-user-id a:hover {
+  color: var(--accent);
+}
+.ck-sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--faint);
+  white-space: nowrap;
+}
+.ck-sync i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.ck-sync.ok {
+  color: var(--ck-good);
+}
+.ck-sync.busy {
+  color: var(--gold);
+}
+.ck-sync.bad {
+  color: var(--ck-bad);
+}
+.ck-gist-link {
+  font-size: 10.5px;
+  color: var(--muted);
+  text-decoration: none;
+}
+.ck-gist-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+/* 文字按钮（退出 / 复制 / 取消 / 删除…）：不做成实心按钮，避免和主操作抢焦点 */
+.ck-text-btn {
+  font-family: inherit;
+  font-size: 11.5px;
+  color: var(--faint);
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  border-bottom: 1px dashed transparent;
+  transition: color var(--t-base), border-color var(--t-base);
+}
+.ck-text-btn:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent-line);
+}
+
+/* Device Flow：代码足够大，用户要在 GitHub 页面上照着输 */
+.ck-device {
+  flex: 1 1 100%;
+  max-width: 520px;
+  padding: 10px 12px 9px;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-md);
+  background: var(--accent-soft);
+}
+.ck-device-code-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+.ck-device-label {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.ck-device-code {
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--accent);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 2px 10px;
+  user-select: all;
+}
+.ck-device-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-top: 9px;
+}
+.ck-device-hint {
+  margin: 7px 0 0;
+  font-size: 11px;
+  color: var(--faint);
+  line-height: 1.6;
+}
+
+/* PAT 备用登录 */
+.ck-pat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1 1 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+.ck-pat-input {
+  flex: 1 1 220px;
+  min-width: 0;
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+}
+.ck-pat-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+.ck-pat .btn {
+  padding: 5px 12px;
+  font-size: 12px;
+}
+.ck-pat-hint {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.65;
+  color: var(--faint);
+}
+.ck-pat-hint code {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0 4px;
+}
+.ck-login-error,
+.ck-login-ok {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  text-align: right;
+}
+.ck-login-error {
+  color: var(--ck-bad);
+}
+.ck-login-ok {
+  color: var(--ck-good);
+}
+
+/* ---------- 今天 / 最近一题 ---------- */
+.ck-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding: 13px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+.ck-hero-main {
+  flex: 1 1 380px;
+  min-width: 0;
+}
+.ck-hero-kicker {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.ck-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-strong);
+  flex: none;
+}
+.ck-dot.on {
+  background: var(--ck-3);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ck-3) 18%, transparent);
+}
+.ck-hero-problem {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 5px 0 0;
+  min-width: 0;
+}
+.ck-hero-label {
+  flex: none;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--gold);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  border-radius: var(--r-pill);
+  padding: 0 7px;
+}
+.ck-hero-problem a {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  min-width: 0;
+}
+.ck-hero-problem a:hover {
+  color: var(--accent);
+}
+.ck-hero-source {
+  color: var(--faint);
+  font-size: 11.5px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ck-hero-wait {
+  margin: 5px 0 0;
+  color: var(--gold);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+.ck-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ck-hero-actions .btn {
+  padding: 7px 15px;
+  font-size: 13px;
+}
+.ck-done {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ck-good);
+  background: var(--ck-good-soft);
+  border: 1px solid color-mix(in srgb, var(--ck-good) 26%, transparent);
+  border-radius: var(--r-pill);
+  padding: 1px 9px;
+  white-space: nowrap;
+}
+
+/* ---------- 同步错误条 ---------- */
+.ck-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding: 8px 12px;
+  border: 1px solid var(--gold-line);
+  border-radius: var(--r-md);
+  background: var(--gold-soft);
+  color: var(--gold);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.ck-alert.warn {
+  color: var(--muted);
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+/* ---------- 录入表单 ---------- */
+.ck-form {
+  margin-top: 16px;
+  padding: 15px 16px 14px;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+}
+.ck-form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 13.5px;
+}
+.ck-form-grid {
+  display: grid;
+  gap: 12px;
+}
+.ck-form-grid-2 {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.ck-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  margin-bottom: 12px;
+}
+.ck-form-grid .ck-field {
+  margin-bottom: 0;
+}
+.ck-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+.ck-label em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--faint);
+  font-size: 11px;
+}
+/* 日期选择：输入框外观 + 下拉月历；只允许有每日一题的日期 */
+.ck-datepick {
+  position: relative;
+  min-width: 0;
+}
+.ck-datepick-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--t-base), box-shadow var(--t-base), background var(--t-base);
+}
+.ck-datepick-trigger:hover:not(:disabled) {
+  border-color: var(--accent-line);
+}
+.ck-datepick-trigger.open {
+  border-color: var(--accent);
+  background: var(--card);
+  box-shadow: var(--ring);
+}
+.ck-datepick-trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.ck-datepick-trigger svg {
+  flex: none;
+  color: var(--faint);
+}
+.ck-datepick-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.ck-datepick-caret {
+  flex: none;
+  color: var(--muted);
+  font-size: 11px;
+  transition: transform var(--t-base);
+}
+.ck-datepick-caret.open {
+  transform: rotate(180deg);
+}
+.ck-datepick-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  width: 286px;
+  max-width: min(92vw, 286px);
+  padding: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+}
+.ck-datepick-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.ck-datepick-month {
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.ck-datepick-nav {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--t-base), border-color var(--t-base), background var(--t-base);
+}
+.ck-datepick-nav:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+.ck-datepick-nav:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.ck-datepick-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+}
+.ck-datepick-week {
+  text-align: center;
+  font-size: 10px;
+  color: var(--faint);
+  line-height: 22px;
+}
+.ck-datepick-blank {
+  aspect-ratio: 1;
+}
+.ck-datepick-day {
+  aspect-ratio: 1;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--faint);
+  font: inherit;
+  font-size: 12px;
+  cursor: default;
+  min-width: 0;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.ck-datepick-day.on {
+  color: var(--text);
+  background: var(--surface);
+  cursor: pointer;
+}
+.ck-datepick-day.on:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.ck-datepick-day.today {
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+.ck-datepick-day.active,
+.ck-datepick-day.active:hover {
+  color: var(--on-accent);
+  background: var(--accent-fill);
+  border-color: var(--accent-fill);
+  font-weight: 700;
+}
+.ck-datepick-day:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.ck-datepick-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid var(--border);
+}
+.ck-datepick-hint {
+  font-size: 10px;
+  color: var(--faint);
+}
+.ck-field input,
+.ck-field select,
+.ck-field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  transition: border-color var(--t-base), box-shadow var(--t-base), background var(--t-base);
+}
+.ck-field textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  line-height: 1.65;
+  resize: vertical;
+}
+.ck-field input:focus,
+.ck-field select:focus,
+.ck-field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--card);
+  box-shadow: var(--ring);
+}
+.ck-field select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.ck-form-empty {
+  margin: 4px 0 12px;
+  padding: 16px 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-md);
+  color: var(--faint);
+  font-size: 12.5px;
+  text-align: center;
+}
+.ck-field-error {
+  color: var(--ck-bad);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.ck-field-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ck-counter {
+  margin-left: auto;
+  color: var(--faint);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+.ck-form-error {
+  margin: 0 0 10px;
+  padding: 7px 10px;
+  border-radius: var(--r-sm);
+  background: var(--ck-bad-soft);
+  color: var(--ck-bad);
+  font-size: 11.5px;
+}
+.ck-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.ck-form-actions .btn {
+  padding: 7px 15px;
+  font-size: 13px;
+}
+.ck-form-tip {
+  color: var(--faint);
+  font-size: 11px;
+}
+
+/* ---------- 统计 ---------- */
+.ck-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+.ck-stat {
+  padding: 9px 13px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  min-width: 0;
+}
+.ck-stat strong {
+  display: block;
+  color: var(--green);
+  font-size: 22px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.ck-stat span {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ck-stat em {
+  font-style: normal;
+  color: var(--faint);
+}
+
+/* ---------- 热力图 ---------- */
+.ck-grid-card {
+  margin-top: 16px;
+  padding: 12px 16px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+.ck-grid-head {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.ck-grid-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+.ck-grid-range {
+  font-size: 11px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+.ck-grid-summary {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.ck-grid-clear {
+  margin-left: 2px;
+}
+.ck-grid-block {
+  min-width: 0;
+}
+.ck-grid-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0 5px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+  overscroll-behavior-x: contain;
+}
+.ck-grid-scroll::-webkit-scrollbar {
+  height: 7px;
+}
+.ck-grid-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 8px;
+}
+.ck-grid-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ck-grid {
+  display: flex;
+  gap: 0;
+  width: max-content;
+  min-width: 100%;
+}
+.ck-weekdays {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ck-gap);
+  width: 22px;
+  flex: none;
+  padding-top: calc(var(--ck-month-h) + 3px);
+  padding-right: 6px;
+  /* 窄屏热力图要横向滚动，星期标签必须吸在左边：
+     否则默认滚到今天（最右列）时「一 / 三 / 五」会一起滚出视口。 */
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--surface);
+  box-shadow: 5px 0 6px -5px color-mix(in srgb, var(--text) 18%, transparent);
+}
+.ck-weekday {
+  height: var(--ck-cell);
+  line-height: var(--ck-cell);
+  text-align: right;
+  font-size: 9px;
+  color: var(--faint);
+}
+.ck-weeks {
+  display: flex;
+  gap: var(--ck-gap);
+}
+.ck-week {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding-top: calc(var(--ck-month-h) + 3px);
+}
+.ck-month {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 9.5px;
+  line-height: 1;
+  color: var(--faint);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.ck-week-cells {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ck-gap);
+}
+.ck-cell {
+  width: var(--ck-cell);
+  height: var(--ck-cell);
+  border-radius: 2px;
+  background: var(--ck-0);
+  flex: none;
+  transition: background var(--t-fast), box-shadow var(--t-fast);
+}
+.ck-cell.l1 { background: var(--ck-1); }
+.ck-cell.l2 { background: var(--ck-2); }
+.ck-cell.l3 { background: var(--ck-3); }
+.ck-cell.l4 { background: var(--ck-4); }
+/* 未来日期：淡到几乎只剩一层底，不画描边 —— 描边会被看成「空的勾选框」 */
+.ck-cell.future {
+  background: var(--ck-0);
+  opacity: 0.35;
+  box-shadow: none;
+}
+.ck-cell.active {
+  cursor: pointer;
+}
+.ck-cell.active:hover {
+  box-shadow: 0 0 0 1px var(--text);
+}
+.ck-cell.today {
+  box-shadow: 0 0 0 1px var(--text);
+}
+.ck-cell.selected,
+.ck-cell.selected:hover {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.ck-cell:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.ck-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  color: var(--faint);
+  font-size: 10px;
+}
+.ck-legend .ck-cell {
+  width: 9px;
+  height: 9px;
+}
+.ck-legend-note {
+  margin-left: 7px;
+  font-size: 10px;
+}
+.ck-grid-swipe {
+  display: none;
+  margin: 4px 0 0;
+  color: var(--faint);
+  font-size: 10.5px;
+  text-align: right;
+}
+
+/* ---------- 提交列表 ---------- */
+.ck-list {
+  margin-top: 16px;
+}
+.ck-list-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 7px;
+}
+.ck-list-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+.ck-list-count {
+  font-size: 11px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+.ck-list-clear {
+  margin-left: auto;
+}
+.ck-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ck-item {
+  padding: 8px 12px 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  transition: border-color var(--t-base);
+}
+.ck-item:hover {
+  border-color: var(--border-strong);
+}
+.ck-item-main {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.ck-item-date {
+  flex: none;
+  color: var(--faint);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ck-item-date small {
+  margin-left: 3px;
+  font-size: 9.5px;
+}
+.ck-item-title {
+  min-width: 0;
+  max-width: 52ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+}
+a.ck-item-title:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.ck-item-badge {
+  flex: none;
+  font-size: 9.5px;
+  color: var(--gold);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-line);
+  border-radius: var(--r-pill);
+  padding: 0 6px;
+}
+.ck-item-del {
+  margin-left: auto;
+  flex: none;
+}
+.ck-item-del.pending {
+  color: var(--ck-bad);
+  font-weight: 700;
+}
+.ck-item-sub {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 0;
+}
+.ck-item-sub a {
+  flex: none;
+  color: var(--accent);
+  text-decoration: none;
+}
+.ck-item-sub a:hover {
+  text-decoration: underline;
+}
+.ck-item-solution {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--faint);
+}
+.ck-item-details {
+  margin-top: 4px;
+}
+.ck-item-details summary {
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--accent);
+}
+.ck-item-solution-full {
+  margin: 6px 0 0;
+  padding: 9px 11px;
+  background: var(--hl-pre-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow: auto;
+  max-height: 360px;
+}
+.ck-list-more {
+  margin-top: 7px;
+}
+.ck-empty {
+  margin: 0;
+  padding: 20px 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-md);
+  color: var(--faint);
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.7;
+}
+
+/* ---------- 公开到排行榜 ---------- */
+.ck-publish {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+.ck-publish-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+.ck-publish-toggle input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.ck-switch {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 17px;
+  border-radius: var(--r-pill);
+  background: var(--border-strong);
+  transition: background var(--t-base);
+}
+.ck-switch i {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--t-base);
+}
+.ck-publish-toggle input:checked + .ck-switch {
+  background: var(--accent-fill);
+}
+.ck-publish-toggle input:checked + .ck-switch i {
+  transform: translateX(13px);
+}
+.ck-publish-toggle input:focus-visible + .ck-switch {
+  box-shadow: var(--ring);
+}
+.ck-publish-toggle input:disabled + .ck-switch {
+  opacity: 0.5;
+}
+.ck-publish-hint {
+  color: var(--faint);
+  min-width: 0;
+}
+.ck-publish-state {
+  color: var(--faint);
+  white-space: nowrap;
+}
+.ck-publish-state.ok {
+  color: var(--ck-good);
+}
+.ck-publish-error {
+  flex: 1 1 100%;
+  color: var(--ck-bad);
+}
+
+/* ---------- 打卡排行榜 ---------- */
+.ck-lb {
+  position: relative;
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 20px 22px 22px;
+  box-shadow: var(--shadow-md);
+}
+.ck-lb::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--green-bar);
+}
+.ck-lb > * {
+  position: relative;
+}
+.ck-lb-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.ck-lb-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+.ck-lb-sub {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+.ck-lb-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.ck-lb-stamp {
+  color: var(--faint);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ck-lb-refresh {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+.ck-lb-table-wrap {
+  margin-top: 14px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.ck-lb-table {
+  width: 100%;
+  min-width: 660px;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--card);
+}
+.ck-lb-table th {
+  position: static;
+  padding: 9px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-align: left;
+  white-space: nowrap;
+}
+.ck-lb-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 12.5px;
+  vertical-align: middle;
+}
+.ck-lb-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.ck-lb-table tbody tr:hover {
+  background: var(--tint);
+}
+.ck-lb-table tbody tr.me {
+  background: var(--accent-soft);
+}
+.ck-lb-rank-col {
+  width: 48px;
+}
+.ck-lb-rank {
+  color: var(--faint);
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.ck-lb-medal {
+  font-size: 16px;
+  line-height: 1;
+}
+.ck-lb-user a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+}
+.ck-lb-user a:hover {
+  color: var(--accent);
+}
+.ck-lb-avatar {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--border);
+  object-fit: cover;
+}
+.ck-lb-me {
+  margin-left: 6px;
+  padding: 0 6px;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-pill);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 9.5px;
+  font-weight: 700;
+}
+.ck-lb-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ck-lb-streak {
+  color: var(--green);
+  font-weight: 700;
+}
+.ck-lb-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 120px;
+  margin-top: 14px;
+  border: 1px dashed var(--border);
+  border-radius: var(--r-md);
+  color: var(--muted);
+  font-size: 13px;
+}
+.ck-lb-empty {
+  max-width: 680px;
+  margin: 14px auto 0;
+  padding: 24px 18px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-md);
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.8;
+  text-align: center;
+}
+.ck-lb-empty strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text);
+  font-size: 14px;
+}
+.ck-lb-empty p {
+  margin: 4px 0;
+}
+.ck-lb-empty-btn {
+  margin-top: 10px;
+  padding: 6px 14px;
+  font-size: 12px;
+}
+.ck-lb-note {
+  margin-top: 12px;
+  padding: 8px 11px;
+  border: 1px solid var(--gold-line);
+  border-radius: var(--r-md);
+  background: var(--gold-soft);
+  color: var(--gold);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+.ck-lb-more {
+  margin-top: 8px;
+}
+.ck-lb-failed {
+  margin: 8px 0 0;
+  color: var(--faint);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.ck-lb-how {
+  margin-top: 14px;
+  padding-top: 11px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+.ck-lb-how summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 600;
+}
+.ck-lb-how ol {
+  margin: 8px 0;
+  padding-left: 1.5em;
+}
+.ck-lb-how p {
+  margin: 6px 0 0;
+}
+
+/* ---------- 底部 toast ---------- */
+.ck-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 90;
+  transform: translateX(-50%);
+  max-width: min(90vw, 460px);
+  padding: 9px 17px;
+  border-radius: var(--r-pill);
+  background: var(--text);
+  color: var(--bg);
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  pointer-events: none;
+}
+.ck-toast.error {
+  background: var(--ck-bad);
+  color: #fff;
+}
+.ck-toast-enter-active,
+.ck-toast-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.ck-toast-enter-from,
+.ck-toast-leave-to {
+  opacity: 0;
+  transform: translate(-50%, 8px);
+}
+
+@media (max-width: 900px) {
+  .ck-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 690px) {
+  .ck-panel {
+    padding: 17px 16px 18px;
+  }
+  .ck-head {
+    align-items: stretch;
+  }
+  .ck-head-text {
+    flex: 1 1 100%;
+  }
+  .ck-login {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .ck-login-idle {
+    width: 100%;
+    justify-content: center;
+  }
+  .ck-login-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .ck-login-tip,
+  .ck-login-note {
+    text-align: center;
+  }
+  .ck-pat-toggle {
+    align-self: center;
+  }
+  .checkin-page-tabs {
+    width: 100%;
+  }
+  .checkin-page-tabs button {
+    flex: 1;
+  }
+  .ck-hero {
+    padding: 12px 13px;
+  }
+  .ck-hero-actions {
+    width: 100%;
+  }
+  .ck-hero-actions .btn {
+    flex: 1 1 auto;
+  }
+  .ck-form-grid-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ck-form-grid .ck-field {
+    margin-bottom: 0;
+  }
+  .ck-datepick-panel {
+    width: 100%;
+    max-width: none;
+  }
+  .ck-grid-card {
+    padding: 10px 12px 8px;
+  }
+  .ck-grid-summary {
+    margin-left: 0;
+  }
+  .ck-grid-swipe {
+    display: block;
+  }
+  /* 窄屏把「未配置」提示独占一行，配置说明和「用令牌登录」并排，
+     不再让后者孤零零地掉到第三行 */
+  .ck-login-note {
+    flex: 1 1 100%;
+  }
+  .ck-login-error,
+  .ck-login-ok {
+    text-align: left;
+  }
+  .ck-item-title {
+    max-width: 100%;
+    flex: 1 1 100%;
+    order: 3;
+  }
+  .ck-item-del {
+    order: 2;
+  }
+  .checkin-page-stack {
+    gap: 14px;
+  }
+  .cf-account {
+    padding: 13px 14px;
+  }
+  .cf-account-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+  .cf-account-actions .btn {
+    flex: 1 1 auto;
+  }
+  .cf-account-input {
+    flex-basis: 100%;
+  }
+  .ck-lb {
+    padding: 17px 16px 18px;
+  }
+  .ck-lb-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+  .ck-lb-table {
+    min-width: 0;
+  }
+  .ck-lb-optional {
+    display: none;
+  }
+  .ck-lb-table th,
+  .ck-lb-table td {
+    padding: 8px;
+  }
+  .ck-lb-user a span {
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ck-lb-title {
+    font-size: 16px;
+  }
+  .ck-publish-hint {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .ck-title {
+    font-size: 16px;
+  }
+  .ck-user {
+    width: 100%;
+    border-radius: var(--r-md);
+  }
+  .ck-hero-main {
+    flex-basis: 100%;
+  }
+  .ck-stats {
+    gap: 7px;
+  }
+  .ck-stat {
+    padding: 8px 10px;
+  }
+  .ck-stat strong {
+    font-size: 19px;
+  }
+  .ck-device {
+    max-width: 100%;
+  }
+  .ck-device-code {
+    font-size: 17px;
+  }
+  .ck-login-tip,
+  .ck-login-note {
+    font-size: 11px;
+  }
+  .ck-toast {
+    bottom: 82px;
   }
 }

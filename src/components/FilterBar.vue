@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { computed, ref, onMounted, onBeforeUnmount } from "vue";
 import DateFilter from "./DateFilter.vue";
 import TagFilter from "./TagFilter.vue";
 
@@ -58,6 +58,22 @@ onBeforeUnmount(() => {
 
 const hasDateFilter = () =>
   !!(props.filters.year || props.filters.month || props.filters.day);
+
+/** 触发按钮直接显示当前选中的日期，不用点开面板才知道筛了哪一天。 */
+const dateTriggerText = computed(() => {
+  if (props.filters.day) {
+    return [props.filters.year, props.filters.month, props.filters.day]
+      .filter(Boolean)
+      .join("-");
+  }
+  if (props.filters.month) {
+    return [props.filters.year, props.filters.month].filter(Boolean).join("-");
+  }
+  if (props.filters.year) return `${props.filters.year} 年`;
+  return "日期";
+});
+
+
 const hasTagFilter = () => (props.filters.tags || []).length > 0;
 /** 有没有任何筛选在生效：用来决定「清除」是否可点（没得清就别亮着） */
 const hasAnyFilter = () =>
@@ -78,8 +94,9 @@ const hasAnyFilter = () =>
         <button ref="dateBtn" type="button"
           :class="['dropdown-trigger', { active: openPanel === 'date', lit: hasDateFilter() }]"
           aria-haspopup="true" :aria-expanded="openPanel === 'date'"
-          @click="togglePanel('date')">
-          📅 日期<span v-if="hasDateFilter()" class="dot"></span>
+          @click="togglePanel('date')"
+          :title="hasDateFilter() ? `日期筛选：${dateTriggerText}` : '按日期筛选'">
+          📅 {{ dateTriggerText }}<span v-if="hasDateFilter()" class="dot"></span>
         </button>
         <div v-if="openPanel === 'date'" ref="datePanel" class="dropdown-panel">
           <DateFilter
@@ -91,6 +108,7 @@ const hasAnyFilter = () =>
             @update:month="(v) => emit('update:month', v)"
             @update:day="(v) => emit('update:day', v)"
             @clear="emit('clear')"
+            @picked="close"
           />
         </div>
       </div>

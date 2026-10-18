@@ -94,6 +94,7 @@ function check(live) {
 
   const steps = [
     { name: "数据校验 + 生产构建", cmd: "npm run build" },
+    { name: "打卡 / 排行榜 / CF 绑定逻辑测试（离线）", cmd: "node scripts/test-checkin.mjs" },
     { name: "随机性测试（离线）", cmd: "node scripts/test-cf-random.mjs" },
   ];
   if (live) {
@@ -163,7 +164,7 @@ async function menu() {
   rule();
   say();
   say("    [1] 启动开发服务器        npm run dev");
-  say("    [2] 全量检查              数据校验 + 构建 + 随机性测试");
+  say("    [2] 全量检查              数据校验 + 构建 + 打卡/排行榜/CF 绑定逻辑 + 随机性测试");
   say("    [3] 全量检查（含联网）    额外跑真实 Codeforces 题库验收");
   say("    [0] 退出");
   say();
@@ -193,7 +194,7 @@ function help() {
   say();
   say("    xcpc.bat                不带参数：弹出菜单");
   say("    xcpc.bat dev            启动开发服务器");
-  say(`    xcpc.bat check          全量检查（${C.cyan}数据校验 + 构建 + 离线随机性测试${C.reset}）`);
+  say(`    xcpc.bat check          全量检查（${C.cyan}数据校验 + 构建 + 打卡/排行榜/CF 绑定逻辑 + 离线随机性测试${C.reset}）`);
   say("    xcpc.bat check live     全量检查 + 真实 Codeforces 题库验收（需联网）");
   say("    xcpc.bat all            等价于 check live");
   say("    xcpc.bat help           显示本帮助");

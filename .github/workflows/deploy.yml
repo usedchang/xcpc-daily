@@ -25,6 +25,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          # 在仓库 Settings → Secrets and variables → Actions → Variables 里配置；
+          # 没配置时构建仍然成功，页面的打卡区会显示「本机体验模式」。
+          VITE_GITHUB_CLIENT_ID: ${{ vars.VITE_GITHUB_CLIENT_ID }}
+          VITE_GITHUB_AUTH_PROXY: ${{ vars.VITE_GITHUB_AUTH_PROXY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
