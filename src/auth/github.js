@@ -9,6 +9,8 @@
  * 本文件不 import Vue，Node 里也能单独测；localStorage 不可用时静默降级。
  */
 
+import { safeStorage } from "../utils/storage.js";
+
 const API_BASE = "https://api.github.com";
 const SESSION_KEY = "xcpc-github-session-v1";
 const DEVICE_GRANT = "urn:ietf:params:oauth:grant-type:device_code";
@@ -25,13 +27,6 @@ export class GithubError extends Error {
 /* ------------------------------------------------------------------ *
  * 会话存储
  * ------------------------------------------------------------------ */
-function safeStorage() {
-  try {
-    return typeof localStorage !== "undefined" ? localStorage : null;
-  } catch {
-    return null; // Safari 隐私模式等场景访问 localStorage 本身就会抛
-  }
-}
 
 export function loadStoredSession() {
   const store = safeStorage();
@@ -477,16 +472,6 @@ export async function updateGistFile(token, gistId, { fileName, content, descrip
     body,
   });
   return data;
-}
-
-/** 删除 Gist（用于关闭「公开到排行榜」时清掉公开快照）。 */
-export async function deleteGist(token, gistId) {
-  await githubFetch(`/gists/${encodeURIComponent(gistId)}`, {
-    token,
-    method: "DELETE",
-    gist: true,
-  });
-  return true;
 }
 
 /**

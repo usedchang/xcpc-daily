@@ -5,7 +5,7 @@
  * 结构：身份/同步状态 → 今天打卡入口 → 表单 → 统计 → 绿色热力图 → 提交列表。
  * 所有数据与持久化逻辑在 useCheckin，这里只负责把状态拼成页面。
  */
-import { computed, ref } from "vue";
+import { computed, onBeforeUnmount, ref } from "vue";
 import { useCheckin } from "../composables/useCheckin.js";
 import { todayInBeijing } from "../utils/date.js";
 import { CHECKIN } from "../config/checkin.js";
@@ -58,6 +58,7 @@ const leaderboardBusy = ref(false);
 const publishError = ref("");
 const copyState = ref("");
 let copyTimer = 0;
+onBeforeUnmount(() => window.clearTimeout(copyTimer));
 
 const registrationUrl = computed(() =>
   buildRegistrationIssueUrl({

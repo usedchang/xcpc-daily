@@ -10,7 +10,7 @@
  *
  * 退出登录只删本机令牌；要彻底撤销授权得去 GitHub → Settings → Applications。
  */
-import { computed, ref, watch } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { CHECKIN, hasGithubOAuth } from "../config/checkin.js";
 import { useGithubAuth } from "../composables/useGithubAuth.js";
 import { copyText } from "../utils/copy.js";
@@ -37,6 +37,7 @@ const showPat = ref(false);
 const pat = ref("");
 const copyState = ref("");
 let copyTimer = 0;
+onBeforeUnmount(() => window.clearTimeout(copyTimer));
 
 const syncText = computed(() => {
   const state = props.sync?.state || "local";

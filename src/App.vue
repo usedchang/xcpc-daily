@@ -1,6 +1,7 @@
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount } from "vue";
-import { loadProblems } from "./data/problems.js";
+import { reactive, computed, onMounted } from "vue";
+import { usePublishedProblems } from "./composables/usePublishedProblems.js";
+import { scrollToElement } from "./utils/scroll.js";
 import ThemeToggle from "./components/ThemeToggle.vue";
 import GithubCorner from "./components/GithubCorner.vue";
 import LatestCard from "./components/LatestCard.vue";
@@ -15,44 +16,26 @@ import { useSubmitModal } from "./composables/useSubmitModal.js";
 import { useSolutionModal } from "./composables/useSolutionModal.js";
 import { COMMUNITY } from "./config/community.js";
 import { CHECKIN } from "./config/checkin.js";
-import { todayInBeijing } from "./utils/date.js";
 
 // 页面顶部的全局投稿入口（与题解弹窗内的入口共用同一个模态框）
 const { show: openSubmit } = useSubmitModal();
 // 题解弹窗当前展示的题目：用来避免「今日题」的评论区被同时挂两份
 const { problem: modalProblem } = useSolutionModal();
 
-const allData = ref([]);
 const filters = reactive({ q: "", year: "", month: "", day: "", tags: [] });
-const loadError = ref("");
-const loading = ref(true);
-let todayTimer = 0;
+const {
+  published: publishedData,
+  latest,
+  today: todayStr,
+  loading,
+  error: loadError,
+} = usePublishedProblems();
 
 const parseDate = (dateStr) => {
   const [y, m, d] = String(dateStr || "").split("-");
   return { y: y || "", m: m || "", d: d || "" };
 };
 
-// 北京时间（UTC+8）的今天，格式 YYYY-MM-DD。
-// 用于只展示「已发布」的题目（date <= 今天），未来的预置题目不泄露。
-// 具体实现在 utils/date.js：打卡系统也读同一个「今天」，两处不能各算各的。
-const todayStr = ref(todayInBeijing());
-
-// 页面可能被挂一整晚（这站每天更新一次）：跨过北京时间零点后要自己醒过来，
-// 否则「今日题目」会一直停在昨天。切回标签页时补一次检查，另外每 5 分钟兜一次底。
-function refreshToday() {
-  const now = todayInBeijing();
-  if (now !== todayStr.value) todayStr.value = now;
-}
-
-// 已发布的题目：date <= 今天（北京时间），倒序
-const publishedData = computed(() =>
-  [...allData.value]
-    .filter((it) => String(it.date || "") <= todayStr.value)
-    .sort((a, b) => String(b.date).localeCompare(String(a.date)))
-);
-
-const latest = computed(() => publishedData.value[0] || null);
 /** 今日卡片底部「上一题」用：已发布列表里的第二条。 */
 const previousProblem = computed(() => publishedData.value[1] || null);
 
@@ -141,31 +124,14 @@ function clearFilters() {
  * 因此锚点一律走 JS，URL 只留给筛选状态。
  */
 function scrollToSection(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+  scrollToElement(document.getElementById(id));
 }
 
 // URL 参数 → 初始状态：hash 形式的 #/?year=...&month=...&q=...
 const urlState = useUrlState(filters);
 
-onMounted(async () => {
+onMounted(() => {
   urlState.read();
-  document.addEventListener("visibilitychange", refreshToday);
-  todayTimer = window.setInterval(refreshToday, 5 * 60 * 1000);
-  try {
-    allData.value = await loadProblems();
-  } catch (err) {
-    loadError.value = err.message;
-  } finally {
-    loading.value = false;
-  }
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener("visibilitychange", refreshToday);
-  window.clearInterval(todayTimer);
 });
 </script>
 

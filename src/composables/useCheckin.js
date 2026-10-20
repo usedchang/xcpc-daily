@@ -1,5 +1,6 @@
 import { computed, reactive, ref, watch } from "vue";
 import { CHECKIN } from "../config/checkin.js";
+import { safeStorage } from "../utils/storage.js";
 import { useGithubAuth, updateSession, expireSession } from "./useGithubAuth.js";
 import {
   createCheckinGist,
@@ -116,21 +117,12 @@ const viewer = computed(() => auth?.viewer?.value || null);
 const leaderboardPublic = computed(() => Boolean(auth?.session?.value?.leaderboardPublic));
 const leaderboardGistId = computed(() => String(auth?.session?.value?.leaderboardGistId || ""));
 
-/** 浏览器存储不可用（隐私模式、配额满）时不抛错，页面上给一句提示。 */
-function getStorage() {
-  try {
-    return typeof localStorage !== "undefined" ? localStorage : null;
-  } catch {
-    return null;
-  }
-}
-
 function keyFor(name) {
   return `${KEY_PREFIX}${name || GUEST_ACCOUNT}`;
 }
 
 function readDoc(name) {
-  const store = getStorage();
+  const store = safeStorage();
   if (!store) return createEmptyDoc();
   const key = keyFor(name);
   let raw = "";
@@ -157,7 +149,7 @@ function readDoc(name) {
 }
 
 function writeDoc(name, doc) {
-  const store = getStorage();
+  const store = safeStorage();
   if (!store) {
     storageError.value = "浏览器禁用了 localStorage，刷新后本机记录可能丢失";
     return false;
@@ -625,7 +617,7 @@ async function setLeaderboardPublic(enabled) {
 }
 
 /** 手动「重新同步」：拉一次云端再写回；错误状态下先恢复 allowSave。 */
-export async function syncNow() {
+async function syncNow() {
   if (!login || !token) return;
   if (!allowSave || sync.state === "error") {
     await pullFromGist();

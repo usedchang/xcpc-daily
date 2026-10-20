@@ -79,9 +79,13 @@ src/                     页面源码（Vue 3）
   data/cfAccount.js        Codeforces 绑定 / AC 列表拉取 / 本地缓存
   data/leaderboard-core.js 排行榜快照 / 登记解析 / 排名
   data/leaderboard-client.js 排行榜只读加载与缓存
+  components/SubpageShell.vue 子页面共用外壳（标题 / 导航 / footer / document.title）
   components/CfAccountPanel.vue CF 账号绑定面板
+  composables/usePublishedProblems.js 已发布题目共享数据源（跨天刷新）
   composables/useCheckin.js 打卡状态、localStorage、私有 Gist、公开快照
   composables/useCfBinding.js CF 绑定状态与已 AC key 集合
+  utils/storage.js         localStorage 可用性探测（GitHub / CF 共用）
+  utils/scroll.js         页内滚动 + prefers-reduced-motion
 scripts/                 构建辅助脚本 + 本地工具 + 测试
   data-index.mjs           校验数据、生成月份清单、构建收尾
   tool.mjs                 xcpc.bat 的本体：菜单 / dev / 全量检查
@@ -442,9 +446,9 @@ npm run test:cf-random:live    # 额外拉一次真实 CF 题库做验收
 
 - **markdown 渲染链按需加载**：MathJax（含全部 TeX 宏包）+ markdown-it + highlight.js + DOMPurify
   压缩后约 2 MB，只在打开题解弹窗时才会下载（`src/markdown-lazy.js` 里动态 import）。
-  主入口 JS 因此只有 ~174 KB（gzip ~65 KB，只含今日题目、往期题目与基础登录状态）；
-  「每日打卡 + 排行榜」是独立懒加载 chunk（~50 KB / gzip ~18 KB），
-  「随机一题」是独立懒加载 chunk（~29 KB / gzip ~11 KB）；CF 题库本身是运行时按需 fetch 的，
+  主入口 JS 因此只有 ~175 KB（gzip ~65 KB，只含今日题目、往期题目与基础登录状态）；
+  「每日打卡 + 排行榜」是独立懒加载 chunk（~51 KB / gzip ~18 KB），
+  「随机一题」是独立懒加载 chunk（~28 KB / gzip ~11 KB）；CF 题库本身是运行时按需 fetch 的，
   不占打包体积。
 - **JS/CSS 文件名固定**：入口是 `assets/index.js` / `assets/index.css`，懒加载分块在
   `assets/chunks/` 下同样不带内容哈希。原因见 `vite.config.js` 的注释（GitHub Pages CDN

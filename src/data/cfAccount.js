@@ -10,7 +10,7 @@
  */
 
 import { problemKey } from "./cfRandom.js";
-import { safeStorage } from "./cfProblems.js";
+import { safeStorage } from "../utils/storage.js";
 
 export const CF_API_BASE = "https://codeforces.com/api";
 export const CF_PROFILE_BASE = "https://codeforces.com/profile";

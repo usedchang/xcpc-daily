@@ -14,6 +14,7 @@
 
 import { getPublicGist, gistFileContent } from "../auth/github.js";
 import { CHECKIN } from "../config/checkin.js";
+import { safeStorage } from "../utils/storage.js";
 import {
   mergeRegistrations,
   normalizeRegistry,
@@ -25,8 +26,10 @@ import {
 const CACHE_KEY = "xcpc-leaderboard-cache-v1";
 
 function readCache() {
+  const storage = safeStorage();
+  if (!storage) return null;
   try {
-    const raw = localStorage.getItem(CACHE_KEY);
+    const raw = storage.getItem(CACHE_KEY);
     if (!raw) return null;
     const data = JSON.parse(raw);
     if (!data || !Array.isArray(data.entries)) return null;
@@ -39,13 +42,15 @@ function readCache() {
 }
 
 function writeCache(entries, failed) {
+  const storage = safeStorage();
+  if (!storage) return;
   try {
-    localStorage.setItem(
+    storage.setItem(
       CACHE_KEY,
       JSON.stringify({ at: Date.now(), entries, failed: Array.isArray(failed) ? failed : [] })
     );
   } catch {
-    // localStorage 不可用时只走内存/网络
+    // 配额满时只走内存/网络
   }
 }
 
@@ -205,7 +210,7 @@ export async function loadLeaderboard({ token = "", force = false } = {}) {
 
 export function clearLeaderboardCache() {
   try {
-    localStorage.removeItem(CACHE_KEY);
+    safeStorage()?.removeItem(CACHE_KEY);
   } catch {
     // 忽略
   }

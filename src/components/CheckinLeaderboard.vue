@@ -13,6 +13,7 @@ import { useGithubAuth } from "../composables/useGithubAuth.js";
 import { clearLeaderboardCache, loadLeaderboard } from "../data/leaderboard-client.js";
 
 const { viewer, token } = useGithubAuth();
+const emit = defineEmits(["go-checkin"]);
 
 const entries = ref([]);
 const loading = ref(false);
@@ -72,11 +73,6 @@ async function load(force = false) {
 
 function onExternalRefresh() {
   load(true);
-}
-
-/** 空榜时给一个回到上方打卡面板的快捷入口。 */
-function goToCheckinPanel() {
-  document.getElementById("checkin-record")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 onMounted(() => {
@@ -140,7 +136,7 @@ onBeforeUnmount(() => {
         v-if="!failed.length"
         type="button"
         class="btn ghost ck-lb-empty-btn"
-        @click="goToCheckinPanel"
+        @click="emit('go-checkin')"
       >↑ 去上方打卡面板</button>
     </div>
 

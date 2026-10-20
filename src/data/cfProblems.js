@@ -12,6 +12,7 @@
  * 所以 localStorage 也是能缺就缺（storage 参数可注入，见 loadProblemSet）。
  */
 import { problemKey } from "./cfRandom.js";
+import { safeStorage } from "../utils/storage.js";
 
 export const CF_PROBLEMS_API = "https://codeforces.com/api/problemset.problems";
 export const CF_PROBLEM_BASE = "https://codeforces.com/problemset/problem";
@@ -207,21 +208,6 @@ export function decodeCache(data) {
     });
   }
   return out.length ? out : null;
-}
-
-/** 拿到可用的 localStorage；隐私模式 / Node 环境下返回 null。 */
-export function safeStorage() {
-  try {
-    const s = globalThis.localStorage;
-    if (!s) return null;
-    // Safari 隐私模式下 localStorage 存在但写入即抛，这里先探一次
-    const probe = "__xcpc_probe__";
-    s.setItem(probe, "1");
-    s.removeItem(probe);
-    return s;
-  } catch {
-    return null;
-  }
 }
 
 /** 读缓存；过期 / 损坏 / 不可用都返回 null。 */

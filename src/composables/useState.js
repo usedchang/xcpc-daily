@@ -1,7 +1,9 @@
 import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import { safeStorage } from "../utils/storage.js";
 
 const THEME_KEY = "xcpc-theme";
+const storage = safeStorage();
 
 // 模块级单例：无论哪个组件调用 useTheme，都共享同一份状态。
 // 主题变量定义在 :root.dark，因此切换的是 documentElement 的 .dark 类。
@@ -14,19 +16,18 @@ function applyTheme(v) {
 
 // 页面加载时立即恢复本地记忆（不依赖组件 onMounted，避免闪烁）。
 try {
-  const saved = localStorage.getItem(THEME_KEY);
-  applyTheme(saved === "dark");
+  applyTheme(storage?.getItem(THEME_KEY) === "dark");
 } catch (e) {
-  // localStorage 不可用时忽略
+  // 存储不可用时按浅色处理
 }
 
 export function useTheme() {
   function toggle() {
     applyTheme(!dark.value);
     try {
-      localStorage.setItem(THEME_KEY, dark.value ? "dark" : "light");
+      storage?.setItem(THEME_KEY, dark.value ? "dark" : "light");
     } catch (e) {
-      // 隐私模式等 localStorage 不可用时忽略
+      // 隐私模式等存储不可用时忽略
     }
   }
 
