@@ -7,37 +7,38 @@ void solve(){
     vector<int>stk;
     int n=s.size();
     s="&"+s;
-    int las=0;
-    bool f=false;
+    int len=0;
     for(int i=1;i<=n;i++){
         char c=s[i];
         if(c=='('||c==')'){
             if(!stk.empty()&&(s[stk.back()]==')'||s[stk.back()]=='(')) {
-                if(stk.back()+1==i) f=true;
                 stk.pop_back();
             }
             else stk.emplace_back(i);
         }
         else{
             if(!stk.empty()&&(s[stk.back()]==']'||s[stk.back()]=='[')) {
-                if(stk.back()+1==i) f=true;
                 stk.pop_back();
             }
             else stk.emplace_back(i);
         }
         if(stk.empty()){
-            int len=i-las;
-            if(len>2&&f){
-                cout<<"No"<<endl;
-                return;
+            ++len;
+            int nxt=i+1;
+            if(nxt<=n){
+                if((s[nxt]=='('||s[nxt]==')')&&(s[i]=='('||s[i]==')')){
+                    cout<<"No"<<endl;
+                    return;
+                }
+                else if((s[nxt]=='['||s[nxt]==']')&&(s[i]=='['||s[i]==']')){
+                    cout<<"No"<<endl;
+                    return;
+                }
             }
-            las=i;
-            f=false;
         }
-        cout<<las<<' ';
     }
-    cout<<endl;
-    cout<<"Yes"<<endl;
+    if(len>=3) cout<<"No"<<endl;
+    else cout<<"Yes"<<endl;
 }
 int main(){
     cin.tie(0)->ios::sync_with_stdio(false);
