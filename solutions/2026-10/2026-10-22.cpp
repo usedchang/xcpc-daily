@@ -13,29 +13,31 @@ void solve(){
         if(c=='('||c==')'){
             if(!stk.empty()&&(s[stk.back()]==')'||s[stk.back()]=='(')) {
                 stk.pop_back();
+                int nxt=i+1;
+                if(nxt<=n){ 
+                    if((s[nxt]=='('||s[nxt]==')')&&(s[i]=='('||s[i]==')')){
+                        cout<<"No"<<endl;
+                        return;
+                    }
+                }
             }
             else stk.emplace_back(i);
+            
         }
         else{
             if(!stk.empty()&&(s[stk.back()]==']'||s[stk.back()]=='[')) {
                 stk.pop_back();
+                int nxt=i+1;
+                if(nxt<=n){ 
+                    if((s[nxt]=='['||s[nxt]==']')&&(s[i]=='['||s[i]==']')){
+                        cout<<"No"<<endl;
+                        return;
+                    }
+                }
             }
             else stk.emplace_back(i);
         }
-        if(stk.empty()){
-            ++len;
-            int nxt=i+1;
-            if(nxt<=n){
-                if((s[nxt]=='('||s[nxt]==')')&&(s[i]=='('||s[i]==')')){
-                    cout<<"No"<<endl;
-                    return;
-                }
-                else if((s[nxt]=='['||s[nxt]==']')&&(s[i]=='['||s[i]==']')){
-                    cout<<"No"<<endl;
-                    return;
-                }
-            }
-        }
+        if(stk.empty()) ++len;
     }
     if(len>=3) cout<<"No"<<endl;
     else cout<<"Yes"<<endl;

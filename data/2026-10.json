@@ -181,14 +181,14 @@
   "title": "来自知识的礼物",
   "link": "https://qoj.ac/contest/1472/problem/7900/statement/zh_cn",
   "difficulty": "区域铜",
-  "tags": ["math"]
+  "tags": ["data structures","graphs"]
 },
 {
   "date": "2026-10-24",
   "source": "Cfzcpc Round 3",
-  "title": "Equal",
-  "link": "https://qoj.ac/contest/3200/problem/16505",
-  "difficulty": "1500",
-  "tags": ["math"]
+  "title": "Head out to the Target",
+  "link": "https://qoj.ac/contest/3200/problem/16508",
+  "difficulty": "1900",
+  "tags": ["math","data structures"]
 }
 ]
