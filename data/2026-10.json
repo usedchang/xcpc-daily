@@ -198,5 +198,13 @@
   "link": "https://qoj.ac/contest/2238/problem/12568",
   "difficulty": "省赛后期",
   "tags": ["graphs"]
+},
+{
+  "date": "2026-10-26",
+  "source": "The 3rd Universal Cup. Stage 29: Metropolis",
+  "title": "Geometry Task",
+  "link": "https://qoj.ac/contest/1913/problem/9043",
+  "difficulty": "Ucup前中期",
+  "tags": ["math"]
 }
 ]
