@@ -189,6 +189,14 @@
   "title": "Head out to the Target",
   "link": "https://qoj.ac/contest/3200/problem/16508",
   "difficulty": "1900",
-  "tags": ["math","data structures"]
+  "tags": ["ad-hoc","data structures"]
+},
+{
+  "date": "2026-10-25",
+  "source": "“华为智联杯”无线程序设计大赛暨2025年上海市大学生程序设计竞赛",
+  "title": "画圈",
+  "link": "https://qoj.ac/contest/2238/problem/12568",
+  "difficulty": "省赛后期",
+  "tags": ["graphs"]
 }
 ]
