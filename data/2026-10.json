@@ -206,5 +206,13 @@
   "link": "https://qoj.ac/contest/1913/problem/9043",
   "difficulty": "Ucup前中期",
   "tags": ["math"]
+},
+{
+  "date": "2026-10-27",
+  "source": "第十九届吉林省大学生程序设计竞赛",
+  "title": "Crystal Castle",
+  "link": "https://qoj.ac/contest/3786/problem/18380",
+  "difficulty": "省赛后期",
+  "tags": ["math"]
 }
 ]
