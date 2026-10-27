@@ -214,5 +214,13 @@
   "link": "https://qoj.ac/contest/3786/problem/18380",
   "difficulty": "省赛后期",
   "tags": ["math"]
+},
+{
+  "date": "2026-10-28",
+  "source": "The 2026 ICPC China Sichuan Provincial Programming Contest",
+  "title": "博德之跃 3",
+  "link": "https://qoj.ac/contest/3789/problem/18478",
+  "difficulty": "省赛中后期",
+  "tags": ["strings"]
 }
 ]
