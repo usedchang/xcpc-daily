@@ -222,5 +222,13 @@
   "link": "https://qoj.ac/contest/3789/problem/18478",
   "difficulty": "省赛中后期",
   "tags": ["strings"]
+},
+{
+  "date": "2026-10-28",
+  "source": "Luogu P5804",
+  "title": "[SEERC 2019] Absolute Game",
+  "link": "https://www.luogu.com.cn/problem/P5804",
+  "difficulty": "普及",
+  "tags": ["games"]
 }
 ]
