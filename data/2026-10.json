@@ -230,5 +230,13 @@
   "link": "https://www.luogu.com.cn/problem/P5804",
   "difficulty": "普及",
   "tags": ["games"]
+},
+{
+  "date": "2026-10-30",
+  "source": "Luogu P14246",
+  "title": "[CCPC 2024 Shandong I] 多彩的生成树",
+  "link": "https://www.luogu.com.cn/problem/P14246",
+  "difficulty": "普及+/提高−",
+  "tags": ["graphs"]
 }
 ]
