@@ -238,5 +238,13 @@
   "link": "https://www.luogu.com.cn/problem/P14246",
   "difficulty": "普及+/提高−",
   "tags": ["graphs"]
+},
+{
+  "date": "2026-10-31",
+  "source": "The 10th Hebei Collegiate Programming Contest (CCPC 2026 河北省赛)",
+  "title": "求求你不要再摔馍片了",
+  "link": "https://qoj.ac/contest/3933/problem/18945",
+  "difficulty": "邀请赛中后期",
+  "tags": ["dp"]
 }
 ]
